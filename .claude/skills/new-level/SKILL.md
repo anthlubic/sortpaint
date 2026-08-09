@@ -36,7 +36,11 @@ The prompt decides whether the import succeeds, because the checks in step 2 are
 - **flat blocks of colour, no gradients, no shading, no texture**: gradients survive
   quantisation as speckle
 - **a hard dark outline**
-- **five or six colours, plainly different from each other**
+- **five or six colours, plainly different in hue, not just in brightness**: a colour and a
+  darker version of itself is the one failure the eye forgives on the page and the game does not.
+  The bead shader lights every sphere from 45% to 100% brightness, so a bead already covers more
+  than twice its own lightness and a shadow colour has nothing left to distinguish it. Say "six
+  flat colours, each a different hue" rather than "six colours"
 - **a plain background in a colour used elsewhere in the picture**, or a transparent one
 - **square, front-on, centred, no perspective**
 
@@ -67,6 +71,7 @@ level name you want.
 | more than 8 colours | lower `--colors` |
 | fewer cells than the tray | raise `--size`, or use art with less transparency |
 | no finishable level from N seeds | the picture is too fragmented; lower `--colors`, or regenerate something bolder |
+| two colours too close to tell apart | two of the quantised colours are the same hue at different brightness. Regenerate asking for distinct hues, or lower `--colors` so the two merge into one |
 
 Regenerate the art rather than fighting the flags when two or more refusals stack up. A picture
 that barely passes makes a poor puzzle.
@@ -121,3 +126,9 @@ looking proves it is worth playing. A picture that reads as mush at 16x16 passes
 - The menu is a five by five page. Past 25 levels the extras exist but are not shown, and the
   importer warns about it.
 - The importer never writes until every check passes, so a refusal leaves the tree untouched.
+- Colour separation is measured in `scripts/sortpaint/contrast.py`, which is CIEDE2000 with the
+  lightness term discounted because the bead shader spends that lightness on lighting. It is not
+  a WCAG ratio. Under 10 is refused, under 14 is reported as tight. A picture drawn from
+  `scripts/level_art.py` inherits the shared palette, but that palette is only as safe as the
+  combinations already in use: pairing two entries no other picture pairs can still land under
+  the threshold, which is what `make_level_sprites.py --check` is for.

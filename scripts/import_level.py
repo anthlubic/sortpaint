@@ -38,6 +38,7 @@ from sortpaint.level import (
     read_campaign,
     read_level_tres,
 )
+from sortpaint import contrast
 from sortpaint.rules import BoardState, can_fully_scramble, greedy_solve, scramble
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -126,6 +127,10 @@ def _quantise(rgb, alpha, colors):
 # --------------------------------------------------------------------------- checks
 
 
+def hex_of(rgb):
+    return "#%02x%02x%02x" % tuple(rgb)
+
+
 def check(grid, palette):
     """The seed-independent half of ShippedLevelsTests. Raises Refused with a way forward."""
     if grid.playable_count <= DEFAULT_TRAY_CAPACITY:
@@ -154,6 +159,19 @@ def check(grid, palette):
             f"colour {worst} covers {counts[worst]} of {grid.playable_count} cells ({share:.0%}); "
             "no colour may cover more than half, or some cells start already painted. Try a "
             "higher --colors to split the dominant area, or crop the image tighter to the subject."
+        )
+
+    closest = contrast.tightest(palette)
+    if closest is not None and closest[0] < contrast.REFUSE:
+        gap, first, second = closest
+        raise Refused(
+            f"colours {hex_of(palette[first])} and {hex_of(palette[second])} are only {gap:.1f} "
+            f"apart once the bead shader has had its share of the lightness (plain colour "
+            f"distance {contrast.distance(palette[first], palette[second]):.1f}, and the two are "
+            f"not the same thing: see scripts/sortpaint/contrast.py). A player cannot reliably "
+            f"tell them apart, so sorting one into the other is guesswork. Give one of them a "
+            f"different hue rather than only a different brightness, or drop one of them from "
+            f"the picture."
         )
 
 
@@ -317,6 +335,15 @@ def main(argv=None):
 
     print(f"{name}: {grid.width}x{grid.height}, {grid.playable_count} cells, {len(palette)} colours")
     print(f"  scrambles clean and solves with a {args.tray}-sphere tray at seed {seed}")
+
+    closest = contrast.tightest(palette)
+    if closest is not None:
+        gap, first, second = closest
+        margin = f"{hex_of(palette[first])} and {hex_of(palette[second])} are {gap:.1f} apart"
+        if gap < contrast.CLOSE:
+            print(f"  closest colours: {margin}, which is tight. Players will have to look twice.")
+        else:
+            print(f"  closest colours: {margin}")
 
     if args.dry_run:
         print("  --dry-run, so nothing written")

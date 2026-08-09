@@ -18,29 +18,35 @@ The last one is the one that bites. A big single-colour body wants an outline, s
 second material to split it, and `make_level_sprites.py` prints the share of every sprite it draws.
 """
 
+# A shadow colour may not simply be its hero darkened. shaders/sphere.gdshader lights every bead
+# from `ambient` (0.45) up to full brightness, so one bead already covers more than twice its own
+# lightness: the lit side of a dark bead lands on the shaded side of a light one. Lightness is
+# spent on the lighting, which leaves hue and chroma as the only cue telling two colours apart.
+# Every hero/shadow pair below is therefore rotated in hue as well as darkened, and the pairs that
+# share a picture are kept apart on the hue and chroma axes rather than on lightness.
 PALETTE = {
     "O": (0x2B, 0x22, 0x33),  # outline
     "R": (0xE0, 0x45, 0x5A),  # red
-    "D": (0xA8, 0x2F, 0x48),  # deep red
+    "D": (0x8F, 0x24, 0x55),  # deep red, toward wine
     "W": (0xF7, 0xF2, 0xE8),  # white
-    "S": (0xEF, 0xD9, 0xA8),  # straw
-    "T": (0xC9, 0xA8, 0x78),  # straw shadow
+    "S": (0xEF, 0xD2, 0xB2),  # straw, toward tan and away from yellow
+    "T": (0xB5, 0x93, 0x4F),  # straw shadow, toward olive
     "G": (0x63, 0xC1, 0x67),  # green
-    "N": (0x3A, 0x8A, 0x50),  # deep green
+    "N": (0x1F, 0x7A, 0x62),  # deep green, toward pine
     "B": (0x3F, 0x7E, 0xD8),  # blue
     "C": (0x7E, 0xD0, 0xF0),  # pale blue
     "Y": (0xF2, 0xC9, 0x4C),  # yellow
-    "A": (0xF0, 0x8A, 0x3C),  # orange
-    "K": (0xA9, 0x71, 0x3F),  # wood
-    "E": (0x7A, 0x4E, 0x2A),  # wood shadow
+    "A": (0xF5, 0x95, 0x2E),  # orange, toward yellow and away from wood
+    "K": (0x9C, 0x5E, 0x44),  # wood, toward red
+    "E": (0x6A, 0x37, 0x39),  # wood shadow, toward rosewood
     "P": (0xF0, 0x8F, 0xB8),  # blossom
-    "L": (0xD5, 0xD8, 0xE0),  # steel
-    "M": (0x8A, 0x92, 0xA6),  # slate
-    "U": (0x2A, 0x4E, 0x96),  # deep blue
-    "V": (0x8A, 0x5A, 0xC8),  # violet
-    "H": (0xF6, 0xC7, 0xA0),  # sand
-    "J": (0x5F, 0x3E, 0x8F),  # deep violet
-    "X": (0x3E, 0x42, 0x52),  # asphalt
+    "L": (0xCB, 0xC8, 0xE6),  # steel, given a lilac cast so it is not just off white
+    "M": (0x7E, 0x84, 0x8F),  # slate, near neutral so it does not read as a second blue
+    "U": (0x2E, 0x3B, 0x87),  # deep blue, toward indigo
+    "V": (0x80, 0x55, 0xD0),  # violet
+    "H": (0xF7, 0xC4, 0xAC),  # sand, toward peach
+    "J": (0x87, 0x29, 0x7B),  # deep violet, toward plum
+    "X": (0x4A, 0x47, 0x3C),  # asphalt, a warm charcoal rather than a second blue black
     "I": (0x6E, 0xD7, 0xC0),  # mint
 }
 
