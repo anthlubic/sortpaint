@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="ShaderMaterial" path="res://shaders/sphere_material.tres" id="1_bead"]
+
+[node name="Bead" type="ColorRect"]
+material = ExtResource("1_bead")
+layout_mode = 3
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2

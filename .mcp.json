@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "godot": {
+      "command": "node",
+      "args": ["/home/anth/code/godot-mcp/build/index.js"],
+      "env": {
+        "GODOT_PATH": "/home/anth/.local/bin/godot",
+        "GODOT_MCP_ALLOWED_DIRS": "/home/anth/code/sortpaint"
+      }
+    }
+  }
+}

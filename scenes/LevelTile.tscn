@@ -1,0 +1,104 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/LevelTileView.cs" id="1_tile"]
+[ext_resource type="Script" path="res://src/CheckBadge.cs" id="2_check"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+bg_color = Color(0.953, 0.925, 0.98, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.867, 0.812, 0.937, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0.988, 0.973, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.784, 0.694, 0.918, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selected"]
+bg_color = Color(1, 0.996, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.631, 0.518, 0.839, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blank"]
+bg_color = Color(0.933, 0.918, 0.953, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.898, 0.878, 0.925, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[node name="LevelTile" type="Button" node_paths=PackedStringArray("Preview", "Check")]
+custom_minimum_size = Vector2(96, 96)
+offset_right = 96.0
+offset_bottom = 96.0
+toggle_mode = true
+theme_override_styles/disabled = SubResource("StyleBoxFlat_blank")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_selected")
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_selected")
+script = ExtResource("1_tile")
+Preview = NodePath("Preview")
+Check = NodePath("Check")
+
+[node name="Preview" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = 10.0
+offset_right = -11.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Check" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -32.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = 32.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("2_check")
+BadgeColor = Color(0.42, 0.796, 0.62, 1)
+RimColor = Color(1, 0.996, 1, 1)
+MarkColor = Color(1, 1, 1, 1)
+MarkThickness = 0.14
+RimThickness = 0.1

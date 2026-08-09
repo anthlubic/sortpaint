@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="bead" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.35"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="20" fill="#1d1b2b"/>
+  <rect x="16" y="16" width="44" height="44" fill="#e0455a"/>
+  <rect x="68" y="16" width="44" height="44" fill="#3fa9c9"/>
+  <rect x="16" y="68" width="44" height="44" fill="#f2c14e"/>
+  <rect x="68" y="68" width="44" height="44" fill="#6bbf59"/>
+  <circle cx="38" cy="38" r="15" fill="#6bbf59"/>
+  <circle cx="38" cy="38" r="15" fill="url(#bead)"/>
+  <circle cx="90" cy="38" r="15" fill="#f2c14e"/>
+  <circle cx="90" cy="38" r="15" fill="url(#bead)"/>
+  <circle cx="38" cy="90" r="15" fill="#3fa9c9"/>
+  <circle cx="38" cy="90" r="15" fill="url(#bead)"/>
+  <circle cx="90" cy="90" r="15" fill="#e0455a"/>
+  <circle cx="90" cy="90" r="15" fill="url(#bead)"/>
+</svg>

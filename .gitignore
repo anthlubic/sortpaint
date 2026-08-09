@@ -1,0 +1,32 @@
+# Godot
+.godot/
+/android/
+
+# .NET
+bin/
+obj/
+*.user
+*.swp
+.vs/
+.vscode/
+.idea/
+
+# Exports
+# export_presets.cfg is intentionally tracked so build config is shared.
+# If a preset ever holds signing credentials, move those to a local override
+# rather than ignoring the whole file.
+/build/
+
+# 2dog web host output
+AppBundle/
+
+# Python
+__pycache__/
+
+# godot-mcp drops a copy of its autoload at the project root when it starts the game.
+# The one that matters is addons/godot_mcp/mcp_interaction_server.gd.
+/mcp_interaction_server.gd
+/mcp_interaction_server.gd.uid
+
+# Claude Code (personal overrides only; .claude/ itself is checked in)
+.claude/settings.local.json

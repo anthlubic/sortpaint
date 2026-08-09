@@ -1,0 +1,126 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one half way: a cancelled deploy can
+# leave the live site on the previous commit with no way to tell from the run.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  test:
+    name: Rules tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # The test project targets net8.0, so it needs the 8 runtime to run on;
+      # global.json still picks the 10 SDK to build it with.
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+          global-json-file: global.json
+
+      - name: Test
+        run: dotnet test tests/SortPaint.Tests --nologo
+
+  build:
+    name: Web bundle
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # The 2dog packages are large (the linux-x64 editor alone is ~260 MB) and
+      # pinned, so they are worth keeping between runs.
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Provides the browser-wasm runtime pack and emscripten. Without it the
+      # publish fails with NETSDK1147.
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      # Builds the managed app, exports the Godot content to godot.pck through
+      # the 'Web' export preset, statically links the engine, and assembles
+      # SortPaint.web/AppBundle. No Godot install needed: 2dog exports with the
+      # editor libgodot from its own NuGet packages.
+      - name: Publish
+        run: dotnet publish SortPaint.web
+
+      - name: Prepare the bundle for Pages
+        run: |
+          set -eux
+          cd SortPaint.web/AppBundle
+          # Pages cannot serve a .br sibling, and nothing asks for one by name:
+          # dotnet.boot.js lists no compressed assets, and the shell only reaches
+          # for .gz, which it inflates in the page. This is the only safe thing
+          # to strip. Everything the runtime loads is named in dotnet.boot.js, so
+          # never delete anything listed there. A missing asset rejects
+          # mono_download_assets and the engine never starts. To drop a manifest
+          # asset, stop the publish emitting it (see WasmEmitSymbolMap in
+          # SortPaint.web.csproj) rather than deleting it here.
+          find . -name '*.br' -delete
+          # Belt and braces. The Pages artifact path does not run Jekyll, but if
+          # it ever did, Jekyll would drop _framework/ for its leading underscore.
+          touch .nojekyll
+          du -sh .
+
+      # A single missing asset rejects mono_download_assets and the engine never
+      # starts, with nothing on the page to say so. Cheaper to catch it here.
+      - name: Check every asset the boot manifest names is present
+        run: |
+          cd SortPaint.web/AppBundle/_framework
+          missing=0
+          while read -r f; do
+            # 2dog links the engine into the native wasm and deploys it as
+            # godot.wasm at the bundle root, so the manifest name has no file
+            # of its own in _framework/.
+            if [ "$f" = dotnet.native.wasm ]; then
+              [ -e ../godot.wasm ] || { echo "missing asset: godot.wasm"; missing=1; }
+              continue
+            fi
+            [ -e "$f" ] || { echo "missing asset: _framework/$f"; missing=1; }
+          done < <(grep -o '"[A-Za-z0-9._-]*\.\(wasm\|dat\|js\|symbols\)"' dotnet.boot.js | tr -d '"' | sort -u)
+          [ "$missing" -eq 0 ] || exit 1
+          echo "all boot assets present"
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: SortPaint.web/AppBundle
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

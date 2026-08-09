@@ -1,0 +1,25 @@
+<Project Sdk="Godot.NET.Sdk/4.7.1">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>SortPaint</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <!-- The test project compiles src/Core sources directly; keep its own sources,
+       and its xunit references, out of the game assembly. -->
+  <ItemGroup>
+    <Compile Remove="tests/**" />
+    <None Remove="tests/**" />
+  </ItemGroup>
+    <!-- added by the 2dog tool: properties 2dog hosts need that were not already set -->
+    <PropertyGroup>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DefineConstants>$(DefineConstants);LIBGODOT_ENABLED</DefineConstants>
+        <DefaultItemExcludes>$(DefaultItemExcludes);SortPaint.web/**</DefaultItemExcludes>
+    </PropertyGroup>
+    <!-- added by the 2dog tool: compiles the web bootstrap (in the web host folder) into this game assembly -->
+    <ItemGroup>
+        <Compile Include="SortPaint.web/TwoDogWebBoot.cs" Condition="Exists('$(MSBuildThisFileDirectory)SortPaint.web/TwoDogWebBoot.cs')" />
+    </ItemGroup>
+</Project>

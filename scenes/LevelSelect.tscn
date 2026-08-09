@@ -1,0 +1,134 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/LevelSelectView.cs" id="1_select"]
+[ext_resource type="PackedScene" path="res://scenes/LevelTile.tscn" id="2_tile"]
+[ext_resource type="Resource" path="res://levels/campaign.tres" id="3_levels"]
+
+[node name="LevelSelect" type="Control" node_paths=PackedStringArray("Grid", "GridArea", "PlayButton", "SelectionLabel", "ProgressLabel", "PrevButton", "NextButton", "PageLabel", "Pager")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_select")
+Levels = ExtResource("3_levels")
+TileScene = ExtResource("2_tile")
+Grid = NodePath("Layout/GridArea/Grid")
+GridArea = NodePath("Layout/GridArea")
+PlayButton = NodePath("Layout/Footer/PlayButton")
+SelectionLabel = NodePath("Layout/Footer/Selection")
+ProgressLabel = NodePath("Layout/TopBar/PaintedPill/Painted")
+PrevButton = NodePath("Layout/Footer/Pager/Prev")
+NextButton = NodePath("Layout/Footer/Pager/Next")
+PageLabel = NodePath("Layout/Footer/Pager/Page")
+Pager = NodePath("Layout/Footer/Pager")
+Rows = 5
+MaxTileSize = 140
+GameScene = "res://scenes/Main.tscn"
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.957, 0.933, 0.976, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="TopBar" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Layout/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"Title"
+text = "Sort Painting"
+vertical_alignment = 1
+
+[node name="PaintedPill" type="PanelContainer" parent="Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"Pill"
+
+[node name="Painted" type="Label" parent="Layout/TopBar/PaintedPill"]
+layout_mode = 2
+theme_type_variation = &"Muted"
+text = "0 of 0 painted"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GridArea" type="Control" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Grid" type="GridContainer" parent="Layout/GridArea"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 5
+
+[node name="Footer" type="VBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Pager" type="HBoxContainer" parent="Layout/Footer"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="Prev" type="Button" parent="Layout/Footer/Pager"]
+custom_minimum_size = Vector2(104, 0)
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Prev"
+
+[node name="Page" type="Label" parent="Layout/Footer/Pager"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_type_variation = &"Readout"
+text = "1 / 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Next" type="Button" parent="Layout/Footer/Pager"]
+custom_minimum_size = Vector2(104, 0)
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Next"
+
+[node name="Selection" type="Label" parent="Layout/Footer"]
+layout_mode = 2
+theme_type_variation = &"Readout"
+theme_override_font_sizes/font_size = 26
+text = "Pick a picture"
+horizontal_alignment = 1
+
+[node name="PlayButton" type="Button" parent="Layout/Footer"]
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Play"

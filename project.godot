@@ -1,0 +1,45 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Sort Painting"
+run/main_scene="res://scenes/LevelSelect.tscn"
+config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
+config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.957, 0.933, 0.976, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+GameSession="*res://src/GameSession.cs"
+McpInteractionServer="*res://addons/godot_mcp/mcp_interaction_server.gd"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/stretch/mode="canvas_items"
+window/handheld/orientation=1
+
+[dotnet]
+
+project/assembly_name="SortPaint"
+
+[gui]
+
+theme/custom="res://themes/pastel.tres"
+
+[rendering]
+
+environment/defaults/default_clear_color=Color(0.957, 0.933, 0.976, 1)
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

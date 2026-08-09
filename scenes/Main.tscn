@@ -1,0 +1,224 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/GameController.cs" id="1_game"]
+[ext_resource type="Script" path="res://src/BoardView.cs" id="2_board"]
+[ext_resource type="Script" path="res://src/TrayView.cs" id="3_tray"]
+[ext_resource type="PackedScene" path="res://scenes/Cell.tscn" id="4_cell"]
+[ext_resource type="PackedScene" path="res://scenes/Bead.tscn" id="5_bead"]
+[ext_resource type="Resource" path="res://levels/toadstool.tres" id="6_level"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_canvas"]
+bg_color = Color(0.855, 0.812, 0.914, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.784, 0.729, 0.867, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[node name="Main" type="Control" node_paths=PackedStringArray("Board", "TrayRail", "FlightLayer", "LevelNameLabel", "ClockLabel", "RestartButton", "MenuButton", "Overlay", "OverlayTitle", "OverlayBody", "OverlayButton", "OverlayMenuButton")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_game")
+Level = ExtResource("6_level")
+Board = NodePath("Layout/BoardArea/BoardView")
+TrayRail = NodePath("Layout/TrayPanel/TrayView")
+FlightLayer = NodePath("FlightLayer")
+BeadScene = ExtResource("5_bead")
+LevelNameLabel = NodePath("Layout/TopBar/LevelName")
+ClockLabel = NodePath("Layout/TopBar/ClockPill/Clock")
+RestartButton = NodePath("Layout/ButtonBar/RestartButton")
+MenuButton = NodePath("Layout/ButtonBar/MenuButton")
+Overlay = NodePath("Overlay")
+OverlayTitle = NodePath("Overlay/Center/Card/Column/Title")
+OverlayBody = NodePath("Overlay/Center/Card/Column/Body")
+OverlayButton = NodePath("Overlay/Center/Card/Column/Again")
+OverlayMenuButton = NodePath("Overlay/Center/Card/Column/Levels")
+WarningFlash = Color(1, 0.62, 0.66, 1)
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.957, 0.933, 0.976, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="TopBar" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="LevelName" type="Label" parent="Layout/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"Title"
+text = "Level"
+vertical_alignment = 1
+
+[node name="ClockPill" type="PanelContainer" parent="Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"Pill"
+
+[node name="Clock" type="Label" parent="Layout/TopBar/ClockPill"]
+layout_mode = 2
+theme_type_variation = &"Readout"
+text = "0:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BoardArea" type="Control" parent="Layout"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Canvas" type="Panel" parent="Layout/BoardArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_canvas")
+
+[node name="BoardView" type="Control" parent="Layout/BoardArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_board")
+CellScene = ExtResource("4_cell")
+MaxCellSize = 44
+
+[node name="TrayPanel" type="PanelContainer" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"Tray"
+
+[node name="TrayView" type="Control" parent="Layout/TrayPanel"]
+layout_mode = 2
+script = ExtResource("3_tray")
+SlotScene = ExtResource("4_cell")
+Columns = 12
+MaxSlotSize = 44
+SlotGap = 5
+SocketColor = Color(0.776, 0.722, 0.863, 1)
+
+[node name="ButtonBar" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="MenuButton" type="Button" parent="Layout/ButtonBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Levels"
+
+[node name="RestartButton" type="Button" parent="Layout/ButtonBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Restart"
+
+[node name="FlightLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Overlay" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.322, 0.243, 0.443, 0.45)
+
+[node name="Center" type="CenterContainer" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="Overlay/Center"]
+layout_mode = 2
+theme_type_variation = &"Card"
+
+[node name="Column" type="VBoxContainer" parent="Overlay/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Overlay/Center/Card/Column"]
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 40
+text = "Painted!"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="Overlay/Center/Card/Column"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_type_variation = &"Muted"
+theme_override_constants/line_spacing = 2
+text = "0:00"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer" type="Control" parent="Overlay/Center/Card/Column"]
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Again" type="Button" parent="Overlay/Center/Card/Column"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Play again"
+
+[node name="Levels" type="Button" parent="Overlay/Center/Card/Column"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+text = "Back to levels"

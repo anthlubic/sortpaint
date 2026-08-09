@@ -1,0 +1,73 @@
+Sort Painting - Proprietary Software License
+Copyright (c) 2026 Anthony Lubic. All rights reserved.
+
+1. OWNERSHIP
+
+Anthony Lubic ("the Owner") is the sole and exclusive owner of this software
+and of every part of it, including but not limited to the source code, compiled
+binaries, scenes, shaders, level data, art, audio, documentation, and all other
+assets contained in this repository (together, "the Software").
+
+The Software is licensed, not sold. No transfer of ownership occurs under any
+circumstance. All rights not expressly granted in writing by the Owner are
+reserved by the Owner.
+
+2. NO LICENSE GRANTED
+
+No person or entity is granted any right to use, copy, reproduce, modify, adapt,
+translate, merge, publish, distribute, sublicense, sell, rent, lease, host,
+publicly perform, publicly display, or create derivative works of the Software,
+in whole or in part, in source or binary form, by any means and in any medium.
+
+Access to the Software, whether through this repository, a distributed build, or
+any other channel, does not grant any license or right to it. Viewing the
+Software for the purpose of evaluation or discussion is not permission to use it.
+
+You may not reverse engineer, decompile, or disassemble the Software, or attempt
+to derive its source code, except to the extent that this restriction is
+expressly prohibited by applicable law.
+
+3. RELICENSING AND COMMERCIAL RIGHTS
+
+The Owner alone holds the right to license, relicense, sublicense, distribute,
+publish, monetize, and commercially exploit the Software, on any terms the Owner
+chooses, at any time, without obligation to or consent from any other party.
+
+Any permission to use the Software is valid only if granted in a separate written
+agreement signed by the Owner. Such a grant applies only to the specific scope
+stated in that agreement, and does not diminish the Owner's rights under this
+license.
+
+4. CONTRIBUTIONS
+
+Any contribution submitted to the Software by any person, including code,
+assets, documentation, or ideas, is provided to the Owner on a royalty-free,
+irrevocable, worldwide basis, and the contributor assigns to the Owner all right,
+title, and interest in that contribution, including all copyright and other
+intellectual property rights, to the fullest extent permitted by law.
+
+Submitting a contribution grants the contributor no ownership stake in the
+Software and no license to it.
+
+5. THIRD PARTY COMPONENTS
+
+The Software is built with the Godot Engine and may include third party
+components that carry their own licenses. Those components remain governed by
+their respective license terms, and nothing in this license alters them. This
+license applies to the Owner's own work in this repository.
+
+6. TERMINATION
+
+Any use of the Software outside the terms of this license, or outside a separate
+written agreement with the Owner, terminates all permissions immediately and
+automatically, and may constitute copyright infringement subject to civil and
+criminal penalty.
+
+7. NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, TITLE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+OWNER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

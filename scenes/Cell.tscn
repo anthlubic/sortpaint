@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/CellView.cs" id="1_cell"]
+[ext_resource type="ShaderMaterial" path="res://shaders/sphere_material.tres" id="2_bead"]
+[ext_resource type="ShaderMaterial" path="res://shaders/divot_material.tres" id="3_divot"]
+
+[node name="Cell" type="Control" node_paths=PackedStringArray("Pixel", "Sphere")]
+layout_mode = 3
+mouse_filter = 2
+script = ExtResource("1_cell")
+Pixel = NodePath("Pixel")
+Sphere = NodePath("Sphere")
+
+[node name="Pixel" type="ColorRect" parent="."]
+material = ExtResource("3_divot")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.78, 0.72, 0.86, 1)
+
+[node name="Sphere" type="ColorRect" parent="."]
+material = ExtResource("2_bead")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
