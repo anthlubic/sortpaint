@@ -148,9 +148,36 @@ Opening `index.html` over `file://` never works.
 Pushing to `main` deploys the bundle to GitHub Pages at
 <https://anthlubic.github.io/sortpaint/>, via `.github/workflows/pages.yml`.
 The workflow runs the rules tests, publishes the bundle the same way you would
-locally, and hands `AppBundle/` to `actions/deploy-pages`. Nothing about the
-build is CI-specific: no Godot install is needed, because 2dog exports the pck
-with the editor libgodot from its own NuGet packages.
+locally, lays it out under a per-build directory (below), and hands that to
+`actions/deploy-pages`. Nothing about the build is CI-specific: no Godot install
+is needed, because 2dog exports the pck with the editor libgodot from its own
+NuGet packages.
+
+### Why the site is not served from its root
+
+Pages sends `cache-control: max-age=600` on every file and offers no way to
+change it. That makes a reload straddling a deploy able to mix fresh files with
+ten-minute-old ones, and the mix is fatal rather than untidy: `dotnet.boot.js`
+pins every asset by name and hash, and one stale or failed fetch rejects
+`mono_download_assets`. It happened on iOS Safari on 2026-08-09, the first time
+this site was ever redeployed, and it looked exactly like a broken build.
+Clearing Safari's website data was the only way out, which is not something a
+player will work out.
+
+So each deploy goes to a directory named for its commit, and nothing inside one
+is ever written twice, which makes a cached copy of it safe by construction. The
+site root holds only `.github/pages/index.html`, a loader whose content never
+changes, so caching it is always right. It reads the current directory name from
+`version.json` with `cache: 'no-store'`, the one fetch the HTTP cache can answer
+neither from nor into, then `location.replace`s into the build, carrying the
+query string and fragment along so `?2dog-timing` survives.
+
+Two consequences worth knowing. Only the current build's directory is deployed,
+so a link to an older one dies at the next push, and the game re-downloads on
+each deploy (about 12 MB over the wire, since Pages gzips the wasm). And the
+loader is the site's only stable URL, so a change to it cannot be rolled back by
+another deploy for anyone still holding it cached: check it against a local
+static server before pushing, including the path where `version.json` is missing.
 
 The only thing it strips is `*.br`: Pages will not serve a brotli sibling, and
 nothing asks for one by name. The `.gz` siblings stay, since `TWODOG_PCK_GZ` can

@@ -110,9 +110,36 @@ jobs:
           [ "$missing" -eq 0 ] || exit 1
           echo "all boot assets present"
 
+      # Pages sends 'cache-control: max-age=600' on every file and offers no way
+      # to change it, so a reload that straddles a deploy can mix fresh files
+      # with ten-minute-old ones. The .NET boot manifest pins every asset by
+      # name, and one stale or failed fetch rejects mono_download_assets, so the
+      # game parks on its loading bar with nothing on screen to say why. That is
+      # what happened on iOS Safari after the first redeploy of this site.
+      #
+      # So each deploy goes to a directory of its own and nothing in it is ever
+      # written twice, which makes a cached copy of it safe by construction. The
+      # only stable URL is .github/pages/index.html, which never changes and
+      # reads the current directory name from version.json with 'cache:
+      # no-store', the one fetch the HTTP cache cannot answer stale.
+      - name: Lay the site out under a per-build directory
+        run: |
+          set -eux
+          build="${GITHUB_SHA::12}"
+          mkdir -p site/"$build"
+          cp -a SortPaint.web/AppBundle/. site/"$build"/
+          cp .github/pages/index.html site/index.html
+          # The loader wants a tab icon of its own: it is the first thing seen
+          # and the bundle's copies are down inside the build directory.
+          cp SortPaint.web/AppBundle/favicon.svg SortPaint.web/AppBundle/favicon.ico \
+             SortPaint.web/AppBundle/favicon-96x96.png site/
+          printf '{"build":"%s"}\n' "$build" > site/version.json
+          touch site/.nojekyll
+          du -sh site
+
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: SortPaint.web/AppBundle
+          path: site
 
   deploy:
     name: Deploy

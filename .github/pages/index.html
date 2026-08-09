@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+    <title>Sort Painting</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            height: 100%;
+        }
+
+        body {
+            /* The same ground the game's own boot screen paints, so handing
+               over to it is not a flash of a different page. */
+            background-color: #242424;
+            color: #d8d3e0;
+            font: 16px/1.5 system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #notice {
+            margin: 0;
+            padding: 0 1.5rem;
+            max-width: 32rem;
+        }
+    </style>
+</head>
+
+<body>
+    <p id="notice">Loading Sort Painting...</p>
+    <script>
+        // This page is the site's only stable URL, and its content never
+        // changes, so a browser holding it cached forever is always right.
+        //
+        // Everything else lives under a per-build directory whose name this
+        // reads from version.json at load time. GitHub Pages sends
+        // 'cache-control: max-age=600' on every file and gives no way to
+        // change it, so without this a reload straddling a deploy can mix
+        // fresh files with ten-minute-old ones. That mix is fatal rather than
+        // untidy: the .NET boot manifest pins every asset by name, and one
+        // stale or failed fetch rejects mono_download_assets, leaving the game
+        // parked on its loading bar with nothing on screen to say why.
+        //
+        // 'no-store' is what makes it work. It bypasses the HTTP cache in both
+        // directions, so this fetch cannot be answered from a stale entry and
+        // cannot leave one behind. A build directory is never written twice,
+        // so a cached copy of anything inside one can never be wrong.
+        (function () {
+            var notice = document.getElementById('notice');
+
+            function fail(reason) {
+                console.error(reason);
+                notice.textContent = 'Could not work out which build to load. '
+                    + 'Check your connection and reload. (' + reason + ')';
+            }
+
+            fetch('version.json', { cache: 'no-store' })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('version.json: HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function (version) {
+                    var build = version && version.build;
+                    // A build name goes straight into a URL, so it is checked
+                    // rather than trusted: no slashes, no dots, nothing that
+                    // could climb out of the directory.
+                    if (typeof build !== 'string' || !/^[A-Za-z0-9_-]+$/.test(build)) {
+                        throw new Error('version.json names no usable build');
+                    }
+                    // replace(), not assign(): the loader stays out of history,
+                    // so Back from the game leaves the site instead of bouncing
+                    // through here again.
+                    location.replace(build + '/index.html' + location.search + location.hash);
+                })
+                .catch(function (err) { fail(err.message || String(err)); });
+        })();
+    </script>
+</body>
+
+</html>
