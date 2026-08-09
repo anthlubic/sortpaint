@@ -19,21 +19,37 @@ public partial class BoardView : Control
     [Export(PropertyHint.Range, "4,128,1")]
     public int MaxCellSize { get; set; } = 44;
 
+    [ExportGroup("Pinch")]
+
+    /// <summary>How far two fingers can open the picture up. 1 turns pinching off.</summary>
+    [Export(PropertyHint.Range, "1,8,0.1")]
+    public float MaxZoom { get; set; } = 4f;
+
+    /// <summary>A finger that slides further than this before lifting was a drag, not a tap.</summary>
+    [Export(PropertyHint.Range, "0,64,1")]
+    public float TapSlop { get; set; } = 12f;
+
+    private const int NoTouch = -1;
+
+    /// <summary>Godot's <c>InputEvent.DEVICE_ID_EMULATION</c>, which marks an event it made up itself.</summary>
+    private const int EmulatedDevice = -1;
+
     private LevelGrid _grid;
     private Color[] _palette;
     private CellView[] _cells;
-    private bool _emulatesMouseFromTouch = true;
+
+    private readonly BoardZoom _zoom = new();
+    private readonly PinchTracker _pinch = new();
+
+    /// <summary>The lone finger that might still turn out to be a tap, and where it landed.</summary>
+    private int _tapTouch = NoTouch;
+    private Vector2 _tapStart;
 
     /// <summary>Edge length of one cell in pixels, after fitting the grid to the available room.</summary>
     public float CellSize { get; private set; }
 
-    /// <summary>Top-left of the grid within this control, once centred.</summary>
+    /// <summary>Top-left of the grid within this control, once centred and pinched.</summary>
     public Vector2 BoardOrigin { get; private set; }
-
-    public override void _Ready()
-    {
-        _emulatesMouseFromTouch = (bool)ProjectSettings.GetSetting("input_devices/pointing/emulate_mouse_from_touch", true);
-    }
 
     public void Build(LoadedLevel level)
     {
@@ -52,6 +68,11 @@ public partial class BoardView : Control
         _grid = level.Grid;
         _palette = level.Palette;
         _cells = new CellView[_grid.CellCount];
+
+        // A new picture arrives fitted and centred, whatever the last one was left pinched to.
+        _zoom.Reset();
+        _pinch.Clear();
+        _tapTouch = NoTouch;
 
         for (int i = 0; i < _grid.CellCount; i++)
         {
@@ -123,40 +144,115 @@ public partial class BoardView : Control
         if (_grid is null || _cells is null) return;
 
         float fitted = Mathf.Min(Size.X / _grid.Width, Size.Y / _grid.Height);
-        CellSize = Mathf.Max(1f, Mathf.Floor(Mathf.Min(fitted, MaxCellSize)));
+        float restingCell = Mathf.Max(1f, Mathf.Floor(Mathf.Min(fitted, MaxCellSize)));
 
-        var gridSize = new Vector2(CellSize * _grid.Width, CellSize * _grid.Height);
-        BoardOrigin = ((Size - gridSize) * 0.5f).Floor();
+        _zoom.MaxZoom = MaxZoom;
+        _zoom.SetLayout(Size.X, Size.Y, restingCell * _grid.Width, restingCell * _grid.Height);
 
-        var cellSize = new Vector2(CellSize, CellSize);
+        CellSize = restingCell * _zoom.Zoom;
+        BoardOrigin = new Vector2(_zoom.OriginX, _zoom.OriginY);
+
         for (int i = 0; i < _cells.Length; i++)
         {
             CellView cell = _cells[i];
             if (cell is null) continue;
 
-            cell.Position = BoardOrigin + new Vector2(_grid.XOf(i) * CellSize, _grid.YOf(i) * CellSize);
-            cell.Size = cellSize;
+            // Each cell is snapped to whole pixels by its edges rather than its corner and size,
+            // so a half-open zoom leaves no seams or overlaps between neighbours.
+            float left = BoardOrigin.X + _grid.XOf(i) * CellSize;
+            float top = BoardOrigin.Y + _grid.YOf(i) * CellSize;
+            var corner = new Vector2(Mathf.Round(left), Mathf.Round(top));
+
+            cell.Position = corner;
+            cell.Size = new Vector2(Mathf.Round(left + CellSize), Mathf.Round(top + CellSize)) - corner;
         }
     }
 
+    /// <summary>
+    /// Presses land here, where the GUI has already worked out that this board is the thing
+    /// under the finger. Everything after the press is followed in <see cref="_Input"/>.
+    /// </summary>
     public override void _GuiInput(InputEvent @event)
     {
-        Vector2 local;
         switch (@event)
         {
+            // Godot synthesises a click from the first finger down, and it arrives ahead of the
+            // touch it was made from. Those are left to the touch handling, which can still tell
+            // a tap from the opening of a pinch; only a real mouse taps on the way down.
             case InputEventMouseButton mouse when mouse.Pressed && mouse.ButtonIndex == MouseButton.Left:
-                local = mouse.Position;
-                break;
+                if (mouse.Device == EmulatedDevice) return;
+                TapAt(mouse.Position);
+                return;
 
-            // Only when Godot is not already synthesising a mouse click from the same touch.
-            case InputEventScreenTouch touch when touch.Pressed && !_emulatesMouseFromTouch:
-                local = touch.Position;
-                break;
-
-            default:
+            case InputEventScreenTouch touch when touch.Pressed:
+                AcceptEvent();
+                BeginTouch(touch.Index, touch.Position);
                 return;
         }
+    }
 
+    /// <summary>
+    /// Fingers are followed here once they are down: a pinch soon wanders off the board, and a
+    /// second finger's lift is not routed back to the control it started on.
+    /// </summary>
+    public override void _Input(InputEvent @event)
+    {
+        switch (@event)
+        {
+            case InputEventScreenDrag drag when _pinch.IsTracking(drag.Index):
+                DragTouch(drag.Index, ToLocal(drag.Position));
+                return;
+
+            case InputEventScreenTouch touch when !touch.Pressed && _pinch.IsTracking(touch.Index):
+                EndTouch(touch.Index);
+                return;
+
+            // A trackpad pinch, which is the same gesture without the fingers on the glass.
+            case InputEventMagnifyGesture magnify:
+                Vector2 spot = ToLocal(magnify.Position);
+                if (new Rect2(Vector2.Zero, Size).HasPoint(spot)) Pinch(magnify.Factor, spot, Vector2.Zero);
+                return;
+        }
+    }
+
+    private void BeginTouch(int index, Vector2 local)
+    {
+        // The second finger turns what was going to be a tap into a gesture.
+        if (_pinch.Down(index, Point(local))) _tapTouch = NoTouch;
+        else
+        {
+            _tapTouch = index;
+            _tapStart = local;
+        }
+    }
+
+    private void DragTouch(int index, Vector2 local)
+    {
+        if (_tapTouch == index && local.DistanceTo(_tapStart) > TapSlop) _tapTouch = NoTouch;
+
+        if (_pinch.Move(index, Point(local)) is PinchDelta delta)
+            Pinch(delta.Scale, new Vector2(delta.Focus.X, delta.Focus.Y), new Vector2(delta.Drag.X, delta.Drag.Y));
+    }
+
+    private void EndTouch(int index)
+    {
+        _pinch.Up(index);
+        if (_tapTouch != index) return;
+
+        // The tap lands where the finger came down, not where it drifted to before lifting.
+        _tapTouch = NoTouch;
+        TapAt(_tapStart);
+    }
+
+    private void Pinch(float scale, Vector2 focus, Vector2 drag)
+    {
+        bool moved = _zoom.ZoomBy(scale, focus.X, focus.Y);
+        moved |= _zoom.PanBy(drag.X, drag.Y);
+        if (moved) Relayout();
+    }
+
+    private void TapAt(Vector2 local)
+    {
         if (_grid is null || CellSize <= 0f) return;
 
         Vector2 onGrid = local - BoardOrigin;
@@ -167,4 +263,9 @@ public partial class BoardView : Control
         AcceptEvent();
         EmitSignal(SignalName.CellTapped, x, y);
     }
+
+    /// <summary>Viewport coordinates, as the raw input events carry, into this control's own.</summary>
+    private Vector2 ToLocal(Vector2 viewportPoint) => GetGlobalTransformWithCanvas().AffineInverse() * viewportPoint;
+
+    private static System.Numerics.Vector2 Point(Vector2 local) => new(local.X, local.Y);
 }

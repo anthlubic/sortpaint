@@ -33,6 +33,11 @@ it goes.
 - Nothing ends a level but finishing the picture. A board that has run out of moves just sits there
   until you press `Restart`.
 
+Two fingers pinch the picture open, up to four times its fitted size, and drag it around once it is
+too big for the window. It can never be dragged past its own edges, and pinching back closed puts it
+straight again. On a touch screen a tap lands when the finger lifts, so opening a pinch never counts
+as a tap.
+
 ## Running it
 
 ```sh

@@ -117,9 +117,12 @@ offset_right = -14.0
 offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 script = ExtResource("2_board")
 CellScene = ExtResource("4_cell")
 MaxCellSize = 44
+MaxZoom = 4.0
+TapSlop = 12.0
 
 [node name="TrayPanel" type="PanelContainer" parent="Layout"]
 layout_mode = 2
