@@ -20,6 +20,9 @@ public partial class CellView : Control
 
     [Export(PropertyHint.Range, "0.01,0.6,0.01")] public float HoverDuration { get; set; } = 0.11f;
 
+    /// <summary>A raised bead leans up into the cell above, so it has to draw in front of the squares.</summary>
+    private const int RaisedLayer = 1;
+
     private bool _hovered;
     private Tween _tween;
 
@@ -47,9 +50,6 @@ public partial class CellView : Control
     {
         if (_hovered == hovered) return;
         _hovered = hovered;
-
-        // A raised bead overlaps its neighbours, so it has to be drawn after them.
-        if (hovered) MoveToFront();
 
         if (animate) Animate();
         else Settle();
@@ -79,11 +79,24 @@ public partial class CellView : Control
         if (IsInstanceValid(_tween)) _tween.Kill();
         Sphere.PivotOffset = Sphere.Size * 0.5f;
 
+        // In front for the whole trip, both ways. Dropping a bead out of the raised layer the
+        // moment it is put down would duck it behind the square above while it is still falling.
+        Sphere.ZIndex = RaisedLayer;
+
         _tween = CreateTween().SetParallel(true);
         _tween.TweenProperty(Sphere, "position", RestingOffset, HoverDuration)
               .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
         _tween.TweenProperty(Sphere, "scale", RestingScale, HoverDuration)
               .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+
+        if (!_hovered)
+            _tween.TweenCallback(Callable.From(Land)).SetDelay(HoverDuration);
+    }
+
+    /// <summary>A bead that has finished coming down goes back to sitting among its neighbours.</summary>
+    private void Land()
+    {
+        if (Sphere is not null && !_hovered) Sphere.ZIndex = 0;
     }
 
     private void Settle()
@@ -94,5 +107,6 @@ public partial class CellView : Control
         Sphere.PivotOffset = Sphere.Size * 0.5f;
         Sphere.Position = RestingOffset;
         Sphere.Scale = RestingScale;
+        Sphere.ZIndex = _hovered ? RaisedLayer : 0;
     }
 }
