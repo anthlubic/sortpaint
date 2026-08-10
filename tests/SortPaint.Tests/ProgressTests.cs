@@ -102,4 +102,54 @@ public class ProgressTests
     {
         Assert.Throws<ArgumentNullException>(() => new Progress(null));
     }
+
+    [Fact]
+    public void ARoundIsRememberedWithHowManyMovesItTook()
+    {
+        var progress = new Progress();
+
+        Assert.True(progress.Record("toadstool", 74));
+
+        Assert.True(progress.IsCompleted("toadstool"));
+        Assert.Equal(74, progress.BestMoves("toadstool"));
+    }
+
+    [Fact]
+    public void OnlyAShorterRoundReplacesTheOneOnFile()
+    {
+        var progress = new Progress();
+        progress.Record("toadstool", 74);
+
+        Assert.False(progress.Record("toadstool", 90));
+        Assert.Equal(74, progress.BestMoves("toadstool"));
+
+        Assert.True(progress.Record("toadstool", 66));
+        Assert.Equal(66, progress.BestMoves("toadstool"));
+    }
+
+    [Fact]
+    public void AFinishWithNoCountStillCountsAsAFinish()
+    {
+        var progress = new Progress();
+
+        Assert.True(progress.MarkCompleted("toadstool"));
+        Assert.Equal(0, progress.BestMoves("toadstool"));
+
+        // A round with a count is news even though the level was already finished.
+        Assert.True(progress.Record("toadstool", 74));
+        Assert.Equal(74, progress.BestMoves("toadstool"));
+
+        // And one without never throws a count away.
+        Assert.False(progress.MarkCompleted("toadstool"));
+        Assert.Equal(74, progress.BestMoves("toadstool"));
+    }
+
+    [Fact]
+    public void AnUnfinishedLevelHasNoBestRound()
+    {
+        var progress = new Progress(["cactus"]);
+
+        Assert.Equal(0, progress.BestMoves("toadstool"));
+        Assert.Equal(0, progress.BestMoves(null));
+    }
 }

@@ -10,12 +10,22 @@ namespace SortPaint;
 public partial class LevelTileView : Button
 {
     [Export] public TextureRect Preview { get; set; }
-    [Export] public Control Check { get; set; }
+    [Export] public CheckBadge Check { get; set; }
+
+    /// <summary>
+    /// The tick for a level painted in par. The badge in the scene carries this colour too, so
+    /// the editor shows what a finished square looks like without the game running.
+    /// </summary>
+    [ExportGroup("Badge")]
+    [Export] public Color ParColor { get; set; } = new(0.42f, 0.796f, 0.62f);
+
+    /// <summary>The tick for a level that took more than par. Painted, but not a good round.</summary>
+    [Export] public Color OverParColor { get; set; } = new(0.376f, 0.353f, 0.42f);
 
     /// <summary>The level this square offers, or null when the level list has run out.</summary>
     public LevelData Level { get; private set; }
 
-    public void ShowLevel(LevelData level, bool completed)
+    public void ShowLevel(LevelData level, bool completed, bool metPar)
     {
         Level = level;
         Disabled = false;
@@ -28,7 +38,7 @@ public partial class LevelTileView : Button
             Preview.Visible = true;
         }
 
-        SetCompleted(completed);
+        SetCompleted(completed, metPar);
     }
 
     /// <summary>A square with no level behind it. It keeps the grid square rather than inviting a tap.</summary>
@@ -45,11 +55,14 @@ public partial class LevelTileView : Button
             Preview.Visible = false;
         }
 
-        SetCompleted(false);
+        SetCompleted(false, true);
     }
 
-    public void SetCompleted(bool completed)
+    public void SetCompleted(bool completed, bool metPar)
     {
-        if (Check is not null) Check.Visible = completed;
+        if (Check is null) return;
+
+        Check.Visible = completed;
+        Check.BadgeColor = metPar ? ParColor : OverParColor;
     }
 }

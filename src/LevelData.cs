@@ -23,4 +23,16 @@ public partial class LevelData : Resource
     /// <summary>Pixels fainter than this are treated as holes in the sprite.</summary>
     [Export(PropertyHint.Range, "0,1,0.01")]
     public float AlphaThreshold { get; set; } = 0.5f;
+
+    /// <summary>
+    /// The fewest moves this level is known to be finishable in, which is what par is measured
+    /// against. Written by scripts/update_par.py; re-run it after changing the picture, the seed
+    /// or the tray, since all three change the answer. Zero means nobody has worked it out, and
+    /// the game then plays the level without a target.
+    /// </summary>
+    [Export(PropertyHint.Range, "0,999,1")]
+    public int OptimalMoves { get; set; }
+
+    /// <summary>The move count to beat: <see cref="OptimalMoves"/> plus its allowance.</summary>
+    public int Par => Core.Par.From(OptimalMoves);
 }

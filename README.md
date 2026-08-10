@@ -9,11 +9,24 @@ republishes it.
 ## Getting around
 
 The game opens on the level select: a five by five page of pictures. Tap one to light it up, then
-Play. A picture you have already painted keeps a green tick in its corner, and the header counts
-them. Squares past the end of the level list are blank, so the page keeps its shape while the set
-grows. In a level, `Levels` goes back to the page and `Restart` deals the same puzzle again.
+Play. A picture you have already painted keeps a tick in its corner, green when the best round came
+in on par and dark grey when it did not, and the header counts them. Squares past the end of the
+level list are blank, so the page keeps its shape while the set grows. In a level, `Levels` goes
+back to the page and `Restart` deals the same puzzle again.
 
-Finished levels are remembered in `user://progress.json`, keyed by each level resource's path.
+Finished levels are remembered in `user://progress.json`, keyed by each level resource's path,
+along with the fewest moves each one has been finished in.
+
+## Par
+
+Every level carries a move target, shown beside the clock as `Moves: 12/72`. Par is the shortest
+solution the search in `scripts/sortpaint/par.py` can find, plus fifteen percent. Going over it is
+allowed and the round can still be finished; the count just turns red and the tick on the menu
+comes out grey rather than green.
+
+The search is far too slow to run while a level opens, so it runs at authoring time and its answer
+is stored in the level resource as `OptimalMoves`. `src/Core/Par.cs` is where the allowance is
+applied. Levels with no number stored play without a target.
 
 ## Rules
 
@@ -57,7 +70,7 @@ dotnet test tests/SortPaint.Tests    # the rules, ~50 tests, no Godot needed
 | `themes/` | `pastel.tres`, the theme every screen draws from. Buttons, panels, and label roles live here rather than in the scenes. |
 | `fonts/` | Fira Sans, bundled so the web build has the same type as the desktop one. |
 | `levels/` | One PNG per level plus a `LevelData` resource pointing at it, and `campaign.tres` listing the levels the menu offers. |
-| `scripts/` | Utilities. `import_level.py` turns an image into a level; `make_level_sprites.py` renders the hand-authored level PNGs from ASCII art. |
+| `scripts/` | Utilities. `import_level.py` turns an image into a level; `update_par.py` works out each level's move target; `make_level_sprites.py` renders the hand-authored level PNGs from ASCII art. |
 
 `GameSession` is the one autoload: it carries the menu's choice into the level and owns the record
 of what has been painted.
@@ -74,13 +87,16 @@ From an image:
 python3 scripts/import_level.py art/dog.png --size 16 --colors 6
 ```
 
-That downscales, quantises, and then plays the level through with a stand-in player. Only if it
-finishes does anything get written: the PNG, the resource, and the entry in `campaign.tres`. A
+That downscales, quantises, and then plays the level through with a stand-in player, and once more
+to find its par. Only if it finishes does anything get written: the PNG, the resource, and the
+entry in `campaign.tres`. A
 picture that cannot be scrambled clean, or that dead-ends, is reported with the reason and the tree
 is left alone. The seed is searched for rather than picked, so re-running the same import is a no-op.
 
 By hand: draw the PNG (or add it to `scripts/make_level_sprites.py`), make the resource in the
-inspector, and add it to `campaign.tres` yourself.
+inspector, and add it to `campaign.tres` yourself. Then `python3 scripts/update_par.py <name>` for
+its move target; the same command re-runs an existing level's, which is what a changed picture,
+seed or tray size needs.
 
 Either way, add the picture to `tests/SortPaint.Tests/LevelSprites.cs`; the importer prints the
 block to paste. The tests scramble every shipped level at the seed its resource carries and play it

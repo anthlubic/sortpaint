@@ -10,3 +10,4 @@ Sprite = ExtResource("2_sprite")
 TrayCapacity = 24
 ShuffleSeed = 20260818
 AlphaThreshold = 0.5
+OptimalMoves = 46

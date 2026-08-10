@@ -4,7 +4,8 @@
     python3 scripts/import_level.py art/dog.png --size 16 --colors 6
 
 Writes levels/dog.png, levels/dog.tres, and adds the level to levels/campaign.tres, but only
-after playing the thing through. A picture that cannot be scrambled clean, or that a stand-in
+after playing the thing through, twice: once to prove it can be finished at all, and once more
+to find the shortest solution it can, which is the level's par (see scripts/update_par.py). A picture that cannot be scrambled clean, or that a stand-in
 player cannot finish with the tray it is given, is reported and nothing is written.
 
 The rules used to decide that are ports, in scripts/sortpaint/. They agree with the C# down to
@@ -38,7 +39,7 @@ from sortpaint.level import (
     read_campaign,
     read_level_tres,
 )
-from sortpaint import contrast
+from sortpaint import contrast, par
 from sortpaint.rules import BoardState, can_fully_scramble, greedy_solve, scramble
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -183,6 +184,24 @@ def playable(grid, seed, tray_capacity):
 
     state = BoardState(grid, spheres, tray_capacity)
     return greedy_solve(state) and state.tray.is_empty
+
+
+def optimal_moves(grid, seed, tray_capacity):
+    """The shortest solution scripts/sortpaint/par.py can find, which is what par is built on.
+
+    Takes a few seconds: the search plays the level out once per beam width. The plan is replayed
+    through the rules before its length is returned, so the number written to the .tres is one
+    that has actually been played.
+    """
+    spheres = scramble(grid, seed)
+    plan = par.solve(grid, spheres, tray_capacity)
+    if plan is None:
+        raise Refused(
+            "the level is finishable but the par search could not get through it, so there is "
+            "no move target to ship. This should not happen; please report the picture."
+        )
+
+    return par.verify(grid, spheres, tray_capacity, plan)
 
 
 def find_seed(grid, first, tries, tray_capacity):
@@ -336,6 +355,14 @@ def main(argv=None):
     print(f"{name}: {grid.width}x{grid.height}, {grid.playable_count} cells, {len(palette)} colours")
     print(f"  scrambles clean and solves with a {args.tray}-sphere tray at seed {seed}")
 
+    try:
+        optimal = optimal_moves(grid, seed, args.tray)
+    except Refused as refusal:
+        print(f"{args.image}: {refusal}", file=sys.stderr)
+        return 1
+
+    print(f"  shortest solution found is {optimal} moves, so par is {par.par_from(optimal)}")
+
     closest = contrast.tightest(palette)
     if closest is not None:
         gap, first, second = closest
@@ -353,7 +380,7 @@ def main(argv=None):
     png = LEVELS / f"{name}.png"
     image.save(png)
     existing.write_text(
-        level_tres(name, display_name, seed, args.tray, args.alpha_threshold)
+        level_tres(name, display_name, seed, args.tray, args.alpha_threshold, optimal)
     )
     print(f"  wrote {png.relative_to(ROOT)} and {existing.relative_to(ROOT)}")
 

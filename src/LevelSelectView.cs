@@ -121,7 +121,10 @@ public partial class LevelSelectView : Control
                 continue;
             }
 
-            _tiles[i].ShowLevel(level, GameSession.Instance?.IsCompleted(level) ?? false);
+            _tiles[i].ShowLevel(
+                level,
+                GameSession.Instance?.IsCompleted(level) ?? false,
+                GameSession.Instance?.MetPar(level) ?? true);
         }
 
         UpdatePager();

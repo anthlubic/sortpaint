@@ -27,6 +27,7 @@ public partial class GameController : Control
     [Export] public PackedScene BeadScene { get; set; }
     [Export] public Label LevelNameLabel { get; set; }
     [Export] public Label ClockLabel { get; set; }
+    [Export] public Label MovesLabel { get; set; }
     [Export] public Button RestartButton { get; set; }
     [Export] public Button MenuButton { get; set; }
     [Export] public Control Overlay { get; set; }
@@ -39,6 +40,9 @@ public partial class GameController : Control
     [Export(PropertyHint.Range, "0.05,1,0.01")] public float FlightDuration { get; set; } = 0.26f;
     [Export(PropertyHint.Range, "0,0.2,0.005")] public float FlightStagger { get; set; } = 0.025f;
     [Export] public Color WarningFlash { get; set; } = new(1f, 0.45f, 0.45f);
+
+    /// <summary>What the move count turns once the round has gone past par.</summary>
+    [Export] public Color OverParColor { get; set; } = new(0.82f, 0.25f, 0.3f);
 
     private LoadedLevel _level;
     private BoardState _state;
@@ -63,6 +67,12 @@ public partial class GameController : Control
     private int _generation;
 
     private float _clock;
+
+    /// <summary>Taps that actually moved spheres. Lifting a run and putting it back down is free.</summary>
+    private int _moves;
+
+    /// <summary>The move count to come in under, or 0 when this level has no par worked out.</summary>
+    private int _par;
 
     /// <summary>The picture is painted. Only a restart resumes.</summary>
     private bool _finished;
@@ -122,6 +132,8 @@ public partial class GameController : Control
         TrayRail.Modulate = Colors.White;
 
         _clock = 0f;
+        _moves = 0;
+        _par = Level.Par;
         _finished = false;
 
         if (Overlay is not null) Overlay.Visible = false;
@@ -163,6 +175,7 @@ public partial class GameController : Control
         }
 
         ClearHover();
+        _moves++;
 
         if (move.Kind == MoveKind.ToTray) AnimateToTray(move);
         else if (move.Source == HoverSource.Tray) AnimateFromTray(move);
@@ -349,7 +362,7 @@ public partial class GameController : Control
 
         // Banked the moment the picture is done, rather than when the overlay appears, so a win
         // is never lost to the wait.
-        GameSession.Instance?.MarkCompleted(Level);
+        GameSession.Instance?.MarkCompleted(Level, _moves);
 
         float wait = FlightDuration + FlightStagger * Mathf.Max(0, beadCount - 1) + 0.2f;
         SceneTreeTimer timer = GetTree().CreateTimer(wait);
@@ -365,10 +378,20 @@ public partial class GameController : Control
         if (Overlay is null) return;
 
         if (OverlayTitle is not null) OverlayTitle.Text = "Painted!";
-        if (OverlayBody is not null) OverlayBody.Text = FormatClock(_clock);
+        if (OverlayBody is not null) OverlayBody.Text = $"{FormatClock(_clock)}\n{Verdict()}";
         if (OverlayButton is not null) OverlayButton.Text = "Play again";
 
         Overlay.Visible = true;
+    }
+
+    /// <summary>The line under the clock: how the round went against par.</summary>
+    private string Verdict()
+    {
+        int optimal = Level?.OptimalMoves ?? 0;
+        if (optimal <= 0) return $"You solved it in {_moves} moves.";
+
+        string ending = Par.IsMet(_moves, _par) ? "Good Job!" : "Try Again!";
+        return $"You solved it in {_moves} moves. The optimal moves is {optimal}. {ending}";
     }
 
     public override void _Process(double delta)
@@ -384,6 +407,14 @@ public partial class GameController : Control
         if (_state is null) return;
 
         if (ClockLabel is not null) ClockLabel.Text = FormatClock(_clock);
+        if (MovesLabel is null) return;
+
+        MovesLabel.Text = _par > 0 ? $"Moves: {_moves}/{_par}" : $"Moves: {_moves}";
+
+        // Over par the count goes red and stays red: the round can still be finished, it just
+        // will not be a good one. Clearing the override puts the theme's colour back.
+        if (_par > 0 && _moves > _par) MovesLabel.AddThemeColorOverride("font_color", OverParColor);
+        else MovesLabel.RemoveThemeColorOverride("font_color");
     }
 
     private static string FormatClock(float seconds)

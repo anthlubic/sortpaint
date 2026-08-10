@@ -11,8 +11,10 @@ Adding a new picture to the game. Either the developer hands over an image, or t
 to be generated.
 
 Not for changing an existing level's tuning: tray size, shuffle seed, and display name live in
-`levels/<name>.tres` and are editable in the Godot inspector. Not for the hand-authored ASCII
-sprites either; those are `scripts/make_level_sprites.py`, a separate and older path.
+`levels/<name>.tres` and are editable in the Godot inspector. Changing the tray or the seed does
+mean re-running `python3 scripts/update_par.py <name>`, since both change how short the level can
+be played. Not for the hand-authored ASCII sprites either; those are
+`scripts/make_level_sprites.py`, a separate and older path.
 
 ## Steps
 
@@ -58,6 +60,11 @@ python3 scripts/import_level.py /tmp/<name>.png --size 16 --colors 6
 quantises, then plays the level through with a stand-in player before writing anything. On
 success it writes `levels/<name>.png` and `levels/<name>.tres` and adds the level to
 `levels/campaign.tres`.
+
+It plays the level a second time to find par, which is the slow part (a few seconds). The
+shortest solution it finds lands in the .tres as `OptimalMoves`; the game adds the allowance and
+shows the result as the `Moves: 12/72` target. `scripts/update_par.py` redoes that for levels
+that already exist.
 
 Add `--dry-run` to see the verdict without writing. Add `--name` when the filename is not the
 level name you want.
@@ -126,6 +133,11 @@ looking proves it is worth playing. A picture that reads as mush at 16x16 passes
 - The menu is a five by five page. Past 25 levels the extras exist but are not shown, and the
   importer warns about it.
 - The importer never writes until every check passes, so a refusal leaves the tree untouched.
+- Par is worked out at authoring time, never in the game: the search in `scripts/sortpaint/par.py`
+  takes seconds, which a level opening cannot spend. Every plan is replayed through
+  `scripts/sortpaint/rules.py` before its length is written, so a shipped target is one that has
+  been played. `python3 scripts/update_par.py --check` reports levels whose stored number no
+  longer matches the search and exits non-zero, without writing.
 - Colour separation is measured in `scripts/sortpaint/contrast.py`, which is CIEDE2000 with the
   lightness term discounted because the bead shader spends that lightness on lighting. It is not
   a WCAG ratio. Under 10 is refused, under 14 is reported as tight. A picture drawn from

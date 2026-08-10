@@ -100,10 +100,11 @@ Sprite = ExtResource("2_sprite")
 TrayCapacity = {tray_capacity}
 ShuffleSeed = {seed}
 AlphaThreshold = {alpha_threshold}
+OptimalMoves = {optimal_moves}
 """
 
 
-def level_tres(name, display_name, seed, tray_capacity, alpha_threshold):
+def level_tres(name, display_name, seed, tray_capacity, alpha_threshold, optimal_moves):
     """The LevelData resource, shaped exactly like the hand-authored ones in levels/."""
     return LEVEL_TRES.format(
         name=name,
@@ -111,6 +112,7 @@ def level_tres(name, display_name, seed, tray_capacity, alpha_threshold):
         seed=seed,
         tray_capacity=tray_capacity,
         alpha_threshold=_trim_float(alpha_threshold),
+        optimal_moves=optimal_moves,
     )
 
 
@@ -133,8 +135,18 @@ def read_level_tres(path):
         "seed": int(fields.get("ShuffleSeed", BASE_SEED)),
         "tray_capacity": int(fields.get("TrayCapacity", DEFAULT_TRAY_CAPACITY)),
         "alpha_threshold": float(fields.get("AlphaThreshold", DEFAULT_ALPHA_THRESHOLD)),
+        "optimal_moves": int(fields.get("OptimalMoves", 0)),
         "sprite": sprite.group(1) if sprite else None,
     }
+
+
+def with_optimal_moves(text, optimal_moves):
+    """The resource text with OptimalMoves set, added at the end if it was not there."""
+    line = f"OptimalMoves = {optimal_moves}"
+    if re.search(r"^OptimalMoves = .+$", text, re.MULTILINE):
+        return re.sub(r"^OptimalMoves = .+$", line, text, count=1, flags=re.MULTILINE)
+
+    return text.rstrip("\n") + "\n" + line + "\n"
 
 
 _CAMPAIGN_EXT = re.compile(r'^\[ext_resource type="Resource" path="res://levels/([^"]+)\.tres" id="([^"]+)"\]$', re.MULTILINE)

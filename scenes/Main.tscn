@@ -19,7 +19,7 @@ corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 
-[node name="Main" type="Control" node_paths=PackedStringArray("Board", "TrayRail", "FlightLayer", "LevelNameLabel", "ClockLabel", "RestartButton", "MenuButton", "Overlay", "OverlayTitle", "OverlayBody", "OverlayButton", "OverlayMenuButton")]
+[node name="Main" type="Control" node_paths=PackedStringArray("Board", "TrayRail", "FlightLayer", "LevelNameLabel", "ClockLabel", "MovesLabel", "RestartButton", "MenuButton", "Overlay", "OverlayTitle", "OverlayBody", "OverlayButton", "OverlayMenuButton")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -34,6 +34,7 @@ FlightLayer = NodePath("FlightLayer")
 BeadScene = ExtResource("5_bead")
 LevelNameLabel = NodePath("Layout/TopBar/LevelName")
 ClockLabel = NodePath("Layout/TopBar/ClockPill/Clock")
+MovesLabel = NodePath("Layout/TopBar/MovesPill/Moves")
 RestartButton = NodePath("Layout/ButtonBar/RestartButton")
 MenuButton = NodePath("Layout/ButtonBar/MenuButton")
 Overlay = NodePath("Overlay")
@@ -77,6 +78,7 @@ size_flags_vertical = 4
 theme_type_variation = &"Title"
 text = "Level"
 vertical_alignment = 1
+clip_text = true
 
 [node name="ClockPill" type="PanelContainer" parent="Layout/TopBar"]
 layout_mode = 2
@@ -87,6 +89,18 @@ theme_type_variation = &"Pill"
 layout_mode = 2
 theme_type_variation = &"Readout"
 text = "0:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MovesPill" type="PanelContainer" parent="Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"Pill"
+
+[node name="Moves" type="Label" parent="Layout/TopBar/MovesPill"]
+layout_mode = 2
+theme_type_variation = &"Readout"
+text = "Moves: 0/0"
 horizontal_alignment = 1
 vertical_alignment = 1
 

@@ -210,25 +210,67 @@ class BoardState:
             return self._resolve_place(index, target)
         return self._resolve_pickup(index, sphere, target)
 
+    def lift_region(self, index):
+        """The connected run of spheres that would come up with the one on `index`."""
+        sphere = self.spheres[index]
+        if sphere == BARE or self.is_painted(index):
+            return []
+
+        # Painted spheres are excluded, which also makes them walls the fill cannot cross.
+        return flood_region(
+            self.grid, index, lambda cell: self.spheres[cell] == sphere and not self.is_painted(cell)
+        )
+
+    def bare_region(self, index):
+        """The connected run of bare cells waiting for the same colour as `index`."""
+        target = self.grid.target_at(index)
+        if target == EMPTY or self.spheres[index] != BARE:
+            return []
+
+        return flood_region(
+            self.grid, index, lambda cell: self.spheres[cell] == BARE and self.grid.target_at(cell) == target
+        )
+
     def _resolve_pickup(self, index, sphere, target):
         if sphere == target or self.tray.is_full:
             return NO_TAP
 
-        # Painted spheres are excluded, which also makes them walls the fill cannot cross.
-        region = flood_region(
-            self.grid, index, lambda cell: self.spheres[cell] == sphere and not self.is_painted(cell)
-        )
-        return Tap(PICKUP, sphere, region[: self.tray.free_slots])
+        return Tap(PICKUP, sphere, self.lift_region(index)[: self.tray.free_slots])
 
     def _resolve_place(self, index, target):
         held = self.tray.count_of(target)
         if held == 0:
             return NO_TAP
 
-        region = flood_region(
-            self.grid, index, lambda cell: self.spheres[cell] == BARE and self.grid.target_at(cell) == target
-        )
-        return Tap(PLACE, target, region[:held])
+        return Tap(PLACE, target, self.bare_region(index)[:held])
+
+    def move_on_board(self, color, from_cells, to_cells):
+        """BoardState.MoveOnBoard: spheres straight from one run of cells to another.
+
+        No tray room is spent, and every destination cell is waiting for `color`, so all of
+        them end up painted.
+        """
+        if len(from_cells) != len(to_cells):
+            raise ValueError(f"cannot move {len(from_cells)} spheres onto {len(to_cells)} cells")
+
+        for cell in from_cells:
+            if self.spheres[cell] != color:
+                raise ValueError(f"cell {cell} does not carry a sphere of colour {color}")
+            if self.is_painted(cell):
+                raise ValueError(f"cell {cell} is painted, so its sphere cannot move")
+
+        for cell in to_cells:
+            if self.spheres[cell] != BARE:
+                raise ValueError(f"cell {cell} already carries a sphere")
+            if self.grid.target_at(cell) != color:
+                raise ValueError(f"cell {cell} is not waiting for colour {color}")
+
+        for cell in from_cells:
+            self.spheres[cell] = BARE
+
+        for cell in to_cells:
+            self.spheres[cell] = color
+            self.painted_count += 1
 
     def apply(self, tap):
         if tap.kind == PICKUP:
