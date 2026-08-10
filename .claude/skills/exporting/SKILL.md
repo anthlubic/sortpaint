@@ -92,6 +92,27 @@ size-optimising the engine. Expect roughly 100 MB in `AppBundle/`, of which
 `godot.wasm` is about 46 MB and `godot.pck` is small. Verified working on
 2026-08-09: the bundle boots and the game is playable in Firefox.
 
+### Why the audio driver is Dummy
+
+`project.godot` sets `audio/driver/driver="Dummy"`. The game has no sound, but
+Godot's web platform initializes its audio driver at startup regardless, and
+that driver builds a real `AudioContext` (`godot_audio_init` in
+`_framework/dotnet.native.js`) whose worklet then streams silence forever. The
+first touch resumes it (`godot_audio_resume`). iOS Safari counts a running
+`AudioContext` as playback: it shows the speaker indicator on the tab and ducks
+whatever the player was listening to. The Dummy driver means the web driver
+never initializes, so no context is ever created.
+
+Two things to know about that setting. Godot's driver lookup treats Dummy as a
+special trailing entry, so it is worth confirming rather than assuming: run the
+game and check `AudioServer.get_driver_name()`, which returns `"Dummy"` with
+this in place. And it is project-wide, not web-only, so adding any sound to the
+game means removing the line.
+
+Verified on 2026-08-10 by publishing the bundle, serving it, and loading a copy
+of `index.html` with the `AudioContext` constructor wrapped in a counter: zero
+constructions through a full boot and a click.
+
 ### Serving
 
 `AppBundle/` is a plain static site. Any static host will do, over HTTPS or on
