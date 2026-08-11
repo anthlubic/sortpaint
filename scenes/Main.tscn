@@ -196,13 +196,14 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.322, 0.243, 0.443, 0.45)
 
-[node name="Center" type="CenterContainer" parent="Overlay"]
+[node name="Center" type="VBoxContainer" parent="Overlay"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchor_left = 0.05
+anchor_right = 0.95
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 1
 
 [node name="Card" type="PanelContainer" parent="Overlay/Center"]
 layout_mode = 2
@@ -215,7 +216,7 @@ theme_override_constants/separation = 14
 [node name="Title" type="Label" parent="Overlay/Center/Card/Column"]
 layout_mode = 2
 theme_type_variation = &"Title"
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 42
 text = "Painted!"
 horizontal_alignment = 1
 
@@ -224,6 +225,7 @@ custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 theme_type_variation = &"Muted"
 theme_override_constants/line_spacing = 2
+theme_override_font_sizes/font_size = 22
 text = "0:00"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -241,11 +243,13 @@ mouse_filter = 2
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
+theme_override_font_sizes/font_size = 28
 text = "Play again"
 
 [node name="Levels" type="Button" parent="Overlay/Center/Card/Column"]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Back to levels"
 
 [node name="LeaderboardClient" type="Node" parent="."]

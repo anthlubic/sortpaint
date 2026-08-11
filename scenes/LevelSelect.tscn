@@ -1,11 +1,13 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/LevelSelectView.cs" id="1_select"]
 [ext_resource type="PackedScene" path="res://scenes/LevelTile.tscn" id="2_tile"]
 [ext_resource type="Resource" path="res://levels/campaign.tres" id="3_levels"]
 [ext_resource type="Script" path="res://src/LockBadge.cs" id="4_lock"]
+[ext_resource type="PackedScene" path="res://scenes/Leaderboard.tscn" id="5_leaderboard"]
+[ext_resource type="Script" path="res://src/LeaderboardClient.cs" id="6_scores"]
 
-[node name="LevelSelect" type="Control" node_paths=PackedStringArray("Grid", "GridArea", "PlayButton", "SelectionLabel", "ProgressLabel", "LockNotice", "LockNoticeTitle", "LockNoticeBody", "LockNoticeButton", "PrevButton", "NextButton", "PageLabel", "Pager")]
+[node name="LevelSelect" type="Control" node_paths=PackedStringArray("Grid", "GridArea", "PlayButton", "SelectionLabel", "ProgressLabel", "BoardButton", "BoardNotice", "Board", "BoardCloseButton", "Scores", "LockNotice", "LockNoticeTitle", "LockNoticeBody", "LockNoticeButton", "PrevButton", "NextButton", "PageLabel", "Pager")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,8 +20,13 @@ TileScene = ExtResource("2_tile")
 Grid = NodePath("Layout/GridArea/Grid")
 GridArea = NodePath("Layout/GridArea")
 PlayButton = NodePath("Layout/Footer/PlayButton")
-SelectionLabel = NodePath("Layout/Footer/Selection")
+SelectionLabel = NodePath("Layout/Heading/Selection")
 ProgressLabel = NodePath("Layout/TopBar/PaintedPill/Painted")
+BoardButton = NodePath("Layout/Heading/BoardRow/Leaderboards")
+BoardNotice = NodePath("BoardNotice")
+Board = NodePath("BoardNotice/Center/Card/Column/Leaderboard")
+BoardCloseButton = NodePath("BoardNotice/Center/Card/Column/Close")
+Scores = NodePath("LeaderboardClient")
 LockNotice = NodePath("LockNotice")
 LockNoticeTitle = NodePath("LockNotice/Center/Card/Column/Title")
 LockNoticeBody = NodePath("LockNotice/Center/Card/Column/Body")
@@ -79,6 +86,27 @@ text = "0 of 0 painted, 0 gold trophies"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Heading" type="VBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Selection" type="Label" parent="Layout/Heading"]
+layout_mode = 2
+theme_type_variation = &"Readout"
+theme_override_font_sizes/font_size = 26
+text = "Pick a picture"
+horizontal_alignment = 1
+
+[node name="BoardRow" type="HBoxContainer" parent="Layout/Heading"]
+layout_mode = 2
+alignment = 1
+
+[node name="Leaderboards" type="Button" parent="Layout/Heading/BoardRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+theme_type_variation = &"SmallButton"
+text = "Leaderboards"
+
 [node name="GridArea" type="Control" parent="Layout"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -126,17 +154,67 @@ layout_mode = 2
 theme_type_variation = &"SmallButton"
 text = "Next"
 
-[node name="Selection" type="Label" parent="Layout/Footer"]
-layout_mode = 2
-theme_type_variation = &"Readout"
-theme_override_font_sizes/font_size = 26
-text = "Pick a picture"
-horizontal_alignment = 1
-
 [node name="PlayButton" type="Button" parent="Layout/Footer"]
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 text = "Play"
+
+[node name="BoardNotice" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="BoardNotice"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.322, 0.243, 0.443, 0.45)
+
+[node name="Center" type="VBoxContainer" parent="BoardNotice"]
+layout_mode = 1
+anchor_left = 0.05
+anchor_right = 0.95
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Card" type="PanelContainer" parent="BoardNotice/Center"]
+layout_mode = 2
+theme_type_variation = &"Card"
+
+[node name="Column" type="VBoxContainer" parent="BoardNotice/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="BoardNotice/Center/Card/Column"]
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 34
+text = "Leaderboard"
+horizontal_alignment = 1
+
+[node name="Leaderboard" parent="BoardNotice/Center/Card/Column" instance=ExtResource("5_leaderboard")]
+layout_mode = 2
+
+[node name="Close" type="Button" parent="BoardNotice/Center/Card/Column"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+theme_override_font_sizes/font_size = 28
+text = "Close"
+
+[node name="LeaderboardClient" type="Node" parent="."]
+script = ExtResource("6_scores")
+ApiOrigin = "https://sortpaint-leaderboard.alubic-games.workers.dev"
+TimeoutSeconds = 6
 
 [node name="LockNotice" type="Control" parent="."]
 visible = false

@@ -15,11 +15,12 @@ Rows = NodePath("Rows")
 StatusLabel = NodePath("Status")
 WaitingText = "Checking the board..."
 EmptyText = "Nobody has painted this one yet."
+UnreachableText = "The board could not be reached."
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
 theme_type_variation = &"Readout"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 26
 text = "Fewest moves"
 horizontal_alignment = 1
 
@@ -30,7 +31,7 @@ theme_override_constants/separation = 2
 [node name="Status" type="Label" parent="."]
 layout_mode = 2
 theme_type_variation = &"Muted"
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 22
 text = "Checking the board..."
 horizontal_alignment = 1
 autowrap_mode = 2

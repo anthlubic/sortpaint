@@ -28,6 +28,17 @@ public partial class LevelSelectView : Control
     [Export] public Label SelectionLabel { get; set; }
     [Export] public Label ProgressLabel { get; set; }
 
+    /// <summary>
+    /// The board for whichever level is lit, on a card of its own. Sits under the level's name
+    /// rather than by the Play button, so it reads as being about that picture.
+    /// </summary>
+    [ExportGroup("Leaderboard")]
+    [Export] public Button BoardButton { get; set; }
+    [Export] public Control BoardNotice { get; set; }
+    [Export] public LeaderboardView Board { get; set; }
+    [Export] public Button BoardCloseButton { get; set; }
+    [Export] public LeaderboardClient Scores { get; set; }
+
     /// <summary>The card that answers a tap on a padlocked square. Hidden until one is tapped.</summary>
     [ExportGroup("Locks")]
     [Export] public Control LockNotice { get; set; }
@@ -62,6 +73,12 @@ public partial class LevelSelectView : Control
     /// </summary>
     private int _gold;
 
+    /// <summary>
+    /// Which board request is the live one. A board asked for, closed, and asked for again on
+    /// another level would otherwise be drawn over by whichever answer came back last.
+    /// </summary>
+    private int _boardRequest;
+
     /// <summary>How many squares a page holds. The grid's own columns times the rows asked for.</summary>
     private int PageSize => Mathf.Max(1, Grid?.Columns ?? 1) * Mathf.Max(1, Rows);
 
@@ -85,6 +102,14 @@ public partial class LevelSelectView : Control
 
         if (LockNotice is not null) LockNotice.Visible = false;
         if (LockNoticeButton is not null) LockNoticeButton.Pressed += HideLockNotice;
+
+        if (BoardNotice is not null) BoardNotice.Visible = false;
+        if (BoardButton is not null) BoardButton.Pressed += ShowBoardNotice;
+        if (BoardCloseButton is not null) BoardCloseButton.Pressed += HideBoardNotice;
+
+        // A build with nowhere to send scores has no boards to show, so the button is not offered
+        // rather than left to open a card that can only apologise.
+        if (BoardButton is not null) BoardButton.Visible = Scores?.Configured ?? false;
 
         Build();
     }
@@ -251,6 +276,37 @@ public partial class LevelSelectView : Control
         if (LockNotice is not null) LockNotice.Visible = false;
     }
 
+    /// <summary>
+    /// Opens the board for the lit square. The card goes up straight away saying the board is on
+    /// its way, so pressing the button always does something, even on a slow connection.
+    /// </summary>
+    private void ShowBoardNotice()
+    {
+        LevelData level = _selected?.Level;
+        if (BoardNotice is null || Board is null || level is null) return;
+
+        int request = ++_boardRequest;
+
+        Board.ShowWaiting(level);
+        BoardNotice.Visible = true;
+
+        Scores?.Fetch(level, result =>
+        {
+            if (request != _boardRequest) return;
+
+            if (result is not null && result.Ok) Board.ShowBoard(level, result);
+            else Board.ShowUnreachable(level);
+        });
+    }
+
+    private void HideBoardNotice()
+    {
+        // Anything still in the air belongs to a card that is no longer up.
+        _boardRequest++;
+
+        if (BoardNotice is not null) BoardNotice.Visible = false;
+    }
+
     private void Select(LevelTileView tile)
     {
         _selected = tile;
@@ -267,6 +323,8 @@ public partial class LevelSelectView : Control
             PlayButton.Disabled = level is null;
             PlayButton.Text = completed ? "Paint again" : "Play";
         }
+
+        if (BoardButton is not null) BoardButton.Disabled = level is null;
     }
 
     /// <summary>

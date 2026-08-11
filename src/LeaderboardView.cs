@@ -24,6 +24,12 @@ public partial class LeaderboardView : VBoxContainer
     [Export] public string WaitingText { get; set; } = "Checking the board...";
     [Export] public string EmptyText { get; set; } = "Nobody has painted this one yet.";
 
+    /// <summary>
+    /// What a card that is only here for the board says when there was no board to show. The finish
+    /// overlay hides itself instead, because it has plenty else to say.
+    /// </summary>
+    [Export] public string UnreachableText { get; set; } = "The board could not be reached.";
+
     /// <summary>Shows the header and says the board is on its way.</summary>
     public void ShowWaiting(LevelData level)
     {
@@ -59,6 +65,19 @@ public partial class LeaderboardView : VBoxContainer
 
         SetStatus(null);
         foreach (BoardRow row in result.Rows) AddRow(row);
+    }
+
+    /// <summary>
+    /// Says the board could not be reached. For a card that exists only to show the board, where
+    /// hiding it would leave nothing behind but a Close button.
+    /// </summary>
+    public void ShowUnreachable(LevelData level)
+    {
+        Visible = true;
+        ClearRows();
+
+        SetHeader(level);
+        SetStatus(UnreachableText);
     }
 
     /// <summary>

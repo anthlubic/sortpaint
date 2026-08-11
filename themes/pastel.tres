@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=20 format=3]
+[gd_resource type="Theme" load_steps=21 format=3]
 
 [ext_resource type="FontFile" path="res://fonts/FiraSans-Regular.ttf" id="1_regular"]
 [ext_resource type="FontFile" path="res://fonts/FiraSans-SemiBold.ttf" id="2_semibold"]
@@ -266,6 +266,20 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.322, 0.243, 0.443, 0.96)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.322, 0.243, 0.443, 0.25)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
 [resource]
 default_font = ExtResource("1_regular")
 default_font_size = 22
@@ -319,3 +333,8 @@ Card/base_type = &"PanelContainer"
 Card/styles/panel = SubResource("StyleBoxFlat_card")
 Pill/base_type = &"PanelContainer"
 Pill/styles/panel = SubResource("StyleBoxFlat_pill")
+TooltipLabel/colors/font_color = Color(1, 0.996, 1, 1)
+TooltipLabel/colors/font_shadow_color = Color(0, 0, 0, 0)
+TooltipLabel/font_sizes/font_size = 20
+TooltipLabel/fonts/font = ExtResource("2_semibold")
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_tooltip")
