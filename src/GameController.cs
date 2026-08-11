@@ -448,9 +448,11 @@ public partial class GameController : Control
         // Par is the number the move counter measured against all round, and the number the
         // verdict is decided by, so it is the one quoted here. Quoting the optimal instead read
         // as par dropping at the last moment, since the optimal is the smaller of the two.
-        if (_par <= 0) return $"You solved it in {_moves} moves.";
+        if (_par <= 0) return $"You solved it in {_moves} moves. Gold trophy!";
 
-        string ending = Par.IsMet(_moves, _par) ? "Good Job!" : "Try Again!";
+        // The miss does not claim a silver, because a player who already had gold on this level
+        // still has it: a longer round never takes the better one off the record.
+        string ending = Par.IsMet(_moves, _par) ? "Gold trophy!" : "Beat par for a gold trophy!";
         return $"You solved it in {_moves} moves. Par is {_par}. {ending}";
     }
 

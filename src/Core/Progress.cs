@@ -82,9 +82,9 @@ public sealed class Progress
     }
 
     /// <summary>
-    /// Whether a level's best round came in on par, which is what a green check marks. A level
+    /// Whether a level's best round came in on par, which is what a gold trophy marks. A level
     /// with no par worked out, and a finish banked before the game counted moves, both count: see
-    /// <see cref="Par.IsMet"/>. The tile badge is decided the same way, so the ticks on the menu
+    /// <see cref="Par.IsMet"/>. The tile badge is decided the same way, so the trophies on the menu
     /// and the number the locks count never disagree.
     /// </summary>
     public bool MetPar(string id, int par) => IsCompleted(id) && Par.IsMet(BestMoves(id), par);
@@ -94,11 +94,11 @@ public sealed class Progress
     {
         ArgumentNullException.ThrowIfNull(levels);
 
-        int checks = 0;
+        int gold = 0;
         foreach ((string id, int par) in levels)
-            if (MetPar(id, par)) checks++;
+            if (MetPar(id, par)) gold++;
 
-        return checks;
+        return gold;
     }
 
     public bool Forget(string id) => !string.IsNullOrEmpty(id) && _best.Remove(id);

@@ -10,18 +10,18 @@ public class UnlockTests
     [InlineData(3, 0)]
     [InlineData(5, 5)]
     [InlineData(9, 5)]
-    public void ALevelIsOpenOnceTheChecksAreIn(int checks, int required)
+    public void ALevelIsOpenOnceTheTrophiesAreIn(int trophies, int required)
     {
-        Assert.True(Unlock.IsOpen(checks, required));
+        Assert.True(Unlock.IsOpen(trophies, required));
     }
 
     [Theory]
     [InlineData(0, 5)]
     [InlineData(4, 5)]
     [InlineData(39, 40)]
-    public void ALevelStaysShutUntilThen(int checks, int required)
+    public void ALevelStaysShutUntilThen(int trophies, int required)
     {
-        Assert.False(Unlock.IsOpen(checks, required));
+        Assert.False(Unlock.IsOpen(trophies, required));
     }
 
     [Fact]
@@ -35,16 +35,33 @@ public class UnlockTests
     [InlineData(2, 5, 3)]
     [InlineData(5, 5, 0)]
     [InlineData(8, 5, 0)]
-    public void TheShortfallIsWhatIsStillMissing(int checks, int required, int expected)
+    public void TheShortfallIsWhatIsStillMissing(int trophies, int required, int expected)
     {
-        Assert.Equal(expected, Unlock.Shortfall(checks, required));
+        Assert.Equal(expected, Unlock.Shortfall(trophies, required));
     }
 
     [Fact]
     public void TheLockedMessageNamesTheNumberItWants()
     {
         Assert.Equal(
-            "This level requires 15 par completions to unlock. Get more green checks!",
+            "This level needs 15 gold trophies to unlock. Paint a level in par to win one!",
             Unlock.LockedMessage(15));
+    }
+
+    [Fact]
+    public void ALevelWantingOneTrophyAsksForItInTheSingular()
+    {
+        Assert.Equal(
+            "This level needs 1 gold trophy to unlock. Paint a level in par to win one!",
+            Unlock.LockedMessage(1));
+    }
+
+    [Theory]
+    [InlineData(0, "0 gold trophies")]
+    [InlineData(1, "1 gold trophy")]
+    [InlineData(2, "2 gold trophies")]
+    public void TheCountReadsAsEnglish(int trophies, string expected)
+    {
+        Assert.Equal(expected, Unlock.GoldTrophies(trophies));
     }
 }

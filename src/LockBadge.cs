@@ -4,7 +4,7 @@ namespace SortPaint;
 
 /// <summary>
 /// The padlock on a level that has not been earned yet. Drawn rather than imported, like
-/// <see cref="CheckBadge"/>, so it stays crisp at whatever size a tile ends up and its look is
+/// <see cref="TrophyBadge"/>, so it stays crisp at whatever size a tile ends up and its look is
 /// editable in the inspector.
 /// </summary>
 [Tool]

@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://src/LevelTileView.cs" id="1_tile"]
-[ext_resource type="Script" path="res://src/CheckBadge.cs" id="2_check"]
+[ext_resource type="Script" path="res://src/TrophyBadge.cs" id="2_trophy"]
 [ext_resource type="Script" path="res://src/LockBadge.cs" id="3_lock"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
@@ -54,7 +54,7 @@ corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
 
-[node name="LevelTile" type="Button" node_paths=PackedStringArray("Preview", "Check", "Lock")]
+[node name="LevelTile" type="Button" node_paths=PackedStringArray("Preview", "Trophy", "Lock")]
 custom_minimum_size = Vector2(96, 96)
 offset_right = 96.0
 offset_bottom = 96.0
@@ -67,7 +67,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_selected")
 script = ExtResource("1_tile")
 Preview = NodePath("Preview")
-Check = NodePath("Check")
+Trophy = NodePath("Trophy")
 Lock = NodePath("Lock")
 
 [node name="Preview" type="TextureRect" parent="."]
@@ -103,7 +103,7 @@ Diameter = 0.6
 ShackleThickness = 0.075
 RimThickness = 0.08
 
-[node name="Check" type="Control" parent="."]
+[node name="Trophy" type="Control" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 1
@@ -115,9 +115,9 @@ offset_right = -3.0
 offset_bottom = 32.0
 grow_horizontal = 0
 mouse_filter = 2
-script = ExtResource("2_check")
-BadgeColor = Color(0.42, 0.796, 0.62, 1)
+script = ExtResource("2_trophy")
+BadgeColor = Color(0.898, 0.706, 0.204, 1)
 RimColor = Color(1, 0.996, 1, 1)
-MarkColor = Color(1, 1, 1, 1)
-MarkThickness = 0.14
+TrophyColor = Color(1, 1, 1, 1)
+HandleThickness = 0.07
 RimThickness = 0.1

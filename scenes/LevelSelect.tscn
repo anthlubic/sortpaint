@@ -75,7 +75,7 @@ theme_type_variation = &"Pill"
 [node name="Painted" type="Label" parent="Layout/TopBar/PaintedPill"]
 layout_mode = 2
 theme_type_variation = &"Muted"
-text = "0 of 0 painted, 0 checks"
+text = "0 of 0 painted, 0 gold trophies"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -196,7 +196,7 @@ custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 theme_type_variation = &"Muted"
 theme_override_constants/line_spacing = 2
-text = "This level requires 5 par completions to unlock. Get more green checks!"
+text = "This level needs 5 gold trophies to unlock. Paint a level in par to win one!"
 horizontal_alignment = 1
 autowrap_mode = 2
 

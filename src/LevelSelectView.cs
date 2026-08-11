@@ -57,10 +57,10 @@ public partial class LevelSelectView : Control
     private int _page;
 
     /// <summary>
-    /// Green checks earned across the whole campaign, which is what the locks are priced in. Read
-    /// once when the menu is built: nothing can earn a check while the menu is up.
+    /// Gold trophies won across the whole campaign, which is what the locks are priced in. Read
+    /// once when the menu is built: nothing can win a trophy while the menu is up.
     /// </summary>
-    private int _checks;
+    private int _gold;
 
     /// <summary>How many squares a page holds. The grid's own columns times the rows asked for.</summary>
     private int PageSize => Mathf.Max(1, Grid?.Columns ?? 1) * Mathf.Max(1, Rows);
@@ -105,7 +105,7 @@ public partial class LevelSelectView : Control
         var group = new ButtonGroup();
         _tiles = new LevelTileView[PageSize];
         _selected = null;
-        _checks = GameSession.Instance?.GreenChecks(Levels) ?? 0;
+        _gold = GameSession.Instance?.GoldTrophies(Levels) ?? 0;
 
         for (int i = 0; i < _tiles.Length; i++)
         {
@@ -143,7 +143,7 @@ public partial class LevelSelectView : Control
                 level,
                 GameSession.Instance?.IsCompleted(level) ?? false,
                 GameSession.Instance?.MetPar(level) ?? true,
-                !GameSession.IsUnlocked(level, _checks));
+                !GameSession.IsUnlocked(level, _gold));
         }
 
         UpdatePager();
@@ -201,7 +201,7 @@ public partial class LevelSelectView : Control
         return first;
     }
 
-    private bool IsOpen(LevelData level) => GameSession.IsUnlocked(level, _checks);
+    private bool IsOpen(LevelData level) => GameSession.IsUnlocked(level, _gold);
 
     private int IndexOf(LevelData level)
     {
@@ -270,9 +270,9 @@ public partial class LevelSelectView : Control
     }
 
     /// <summary>
-    /// Counts the whole campaign, not the page, so paging does not move the total. The checks are
+    /// Counts the whole campaign, not the page, so paging does not move the total. The trophies are
     /// on the same line because they are what the padlocks are spending, so a player who has just
-    /// been told to earn more can see how many they have.
+    /// been told to win more can see how many they have.
     /// </summary>
     private void UpdateProgressLine()
     {
@@ -286,7 +286,7 @@ public partial class LevelSelectView : Control
             if (level is not null && (GameSession.Instance?.IsCompleted(level) ?? false)) painted++;
         }
 
-        ProgressLabel.Text = $"{painted} of {LevelCount} painted, {_checks} checks";
+        ProgressLabel.Text = $"{painted} of {LevelCount} painted, {Unlock.GoldTrophies(_gold)}";
     }
 
     private void Play()

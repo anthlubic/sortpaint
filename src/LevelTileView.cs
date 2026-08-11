@@ -3,7 +3,7 @@ using Godot;
 namespace SortPaint;
 
 /// <summary>
-/// One square of the level select: the finished picture in miniature, with a tick over it once
+/// One square of the level select: the finished picture in miniature, with a trophy over it once
 /// the level has been painted, or a padlock over it while it is still being earned. A toggle
 /// button, so the selected square stays lit.
 /// </summary>
@@ -11,18 +11,18 @@ namespace SortPaint;
 public partial class LevelTileView : Button
 {
     [Export] public TextureRect Preview { get; set; }
-    [Export] public CheckBadge Check { get; set; }
+    [Export] public TrophyBadge Trophy { get; set; }
     [Export] public LockBadge Lock { get; set; }
 
     /// <summary>
-    /// The tick for a level painted in par. The badge in the scene carries this colour too, so
+    /// The trophy for a level painted in par. The badge in the scene carries this colour too, so
     /// the editor shows what a finished square looks like without the game running.
     /// </summary>
     [ExportGroup("Badge")]
-    [Export] public Color ParColor { get; set; } = new(0.42f, 0.796f, 0.62f);
+    [Export] public Color GoldColor { get; set; } = new(0.898f, 0.706f, 0.204f);
 
-    /// <summary>The tick for a level that took more than par. Painted, but not a good round.</summary>
-    [Export] public Color OverParColor { get; set; } = new(0.376f, 0.353f, 0.42f);
+    /// <summary>The trophy for a level that took more than par. Painted, but not a good round.</summary>
+    [Export] public Color SilverColor { get; set; } = new(0.647f, 0.686f, 0.749f);
 
     /// <summary>
     /// What a locked square's picture is washed out to. The picture still shows through, so the
@@ -36,7 +36,7 @@ public partial class LevelTileView : Button
 
     /// <summary>
     /// Whether this square's level is still being earned. A locked square is still tappable: the
-    /// tap is what asks how many checks it wants.
+    /// tap is what asks how many trophies it wants.
     /// </summary>
     public bool Locked { get; private set; }
 
@@ -84,9 +84,9 @@ public partial class LevelTileView : Button
 
     public void SetCompleted(bool completed, bool metPar)
     {
-        if (Check is null) return;
+        if (Trophy is null) return;
 
-        Check.Visible = completed;
-        Check.BadgeColor = metPar ? ParColor : OverParColor;
+        Trophy.Visible = completed;
+        Trophy.BadgeColor = metPar ? GoldColor : SilverColor;
     }
 }

@@ -43,7 +43,7 @@ public partial class GameSession : Node
 
     /// <summary>
     /// A level's identity in the save file. The resource path is stable as long as the .tres file
-    /// stays put; moving one forgets that level's tick rather than crediting the wrong picture.
+    /// stays put; moving one forgets that level's trophy rather than crediting the wrong picture.
     /// </summary>
     public static string KeyFor(LevelData level)
     {
@@ -61,23 +61,23 @@ public partial class GameSession : Node
         level is not null && IsCompleted(level) && Par.IsMet(BestMoves(level), level.Par);
 
     /// <summary>
-    /// How many of a set's levels are painted in par: the green checks the locks are priced in.
+    /// How many of a set's levels are painted in par: the gold trophies the locks are priced in.
     /// Counted over the whole set rather than a page, so paging never moves the number.
     /// </summary>
-    public int GreenChecks(LevelSet levels)
+    public int GoldTrophies(LevelSet levels)
     {
         if (levels is null) return 0;
 
-        int checks = 0;
+        int gold = 0;
         for (int i = 0; i < levels.Count; i++)
-            if (MetPar(levels.At(i))) checks++;
+            if (MetPar(levels.At(i))) gold++;
 
-        return checks;
+        return gold;
     }
 
-    /// <summary>Whether a level is open to play, given the checks earned so far.</summary>
-    public static bool IsUnlocked(LevelData level, int greenChecks) =>
-        level is null || Unlock.IsOpen(greenChecks, level.RequiredChecks);
+    /// <summary>Whether a level is open to play, given the gold trophies won so far.</summary>
+    public static bool IsUnlocked(LevelData level, int goldTrophies) =>
+        level is null || Unlock.IsOpen(goldTrophies, level.RequiredChecks);
 
     /// <summary>How long the best round on a level took, in milliseconds, or 0 when it was untimed.</summary>
     public int BestMillis(LevelData level) => Progress.BestMillis(KeyFor(level));
