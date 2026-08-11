@@ -1,0 +1,27 @@
+{
+  "_comment": "The closed word lists a leaderboard handle is built from. This file is the copy the server validates against; src/Core/Handle.cs holds the game's copy, and tests/SortPaint.Tests/HandleWordsTests.cs fails the build if the two drift apart. Adding a word is fine. Removing or reordering one is not: existing handles in D1 would stop validating.",
+  "adjectives": [
+    "Amber", "Azure", "Brave", "Brisk", "Calm",
+    "Cheery", "Clever", "Copper", "Cosmic", "Crimson",
+    "Dapper", "Dawn", "Deft", "Eager", "Emerald",
+    "Fleet", "Fond", "Gentle", "Golden", "Grand",
+    "Happy", "Hazel", "Humble", "Indigo", "Jolly",
+    "Keen", "Lively", "Lucky", "Mellow", "Merry",
+    "Minty", "Nimble", "Noble", "Olive", "Peppy",
+    "Plucky", "Quick", "Quiet", "Rapid", "Royal",
+    "Ruby", "Rustic", "Sage", "Scarlet", "Sunny",
+    "Swift", "Tidy", "Violet", "Witty", "Zesty"
+  ],
+  "nouns": [
+    "Acorn", "Anchor", "Apple", "Axolotl", "Badger",
+    "Balloon", "Beacon", "Bramble", "Cactus", "Canvas",
+    "Cedar", "Cherry", "Comet", "Compass", "Cricket",
+    "Dahlia", "Eagle", "Ember", "Falcon", "Fennel",
+    "Ferry", "Finch", "Ginger", "Harbour", "Heron",
+    "Ivy", "Juniper", "Kettle", "Lantern", "Lemon",
+    "Lichen", "Magpie", "Maple", "Marble", "Meadow",
+    "Mulberry", "Nutmeg", "Otter", "Pebble", "Pelican",
+    "Pomelo", "Quartz", "Raven", "Ribbon", "Saffron",
+    "Sparrow", "Thistle", "Toadstool", "Walnut", "Willow"
+  ]
+}

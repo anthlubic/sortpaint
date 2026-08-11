@@ -1,0 +1,49 @@
+{
+  "_comment": "The contract between the game's handle check (src/Core/Handle.cs) and the server's (worker/src/validate.js). Both test suites read this file and must agree on every case, so the two separate implementations cannot drift apart on the algorithm the way words.json stops them drifting on the words. Add a case here whenever either side is touched.",
+
+  "valid": [
+    "AmberAcorn000",
+    "ZestyWillow999",
+    "BriskAxolotl042",
+    "QuietPomelo117",
+    "RusticKettle300",
+    "MellowOtter777",
+    "LivelyLantern434",
+    "KeenIvy000",
+    "SageIvy001",
+    "DawnAcorn042",
+    "DapperAcorn042",
+    "CopperComet000",
+    "CopperCompass000",
+    "CosmicToadstool500"
+  ],
+
+  "invalid": [
+    "",
+    "042",
+    "BriskAxolotl",
+    "BriskAxolotl42",
+    "BriskAxolotl0424",
+    "AmberAcorn0000",
+    "briskaxolotl042",
+    "BRISKAXOLOTL042",
+    "Brisk Axolotl042",
+    "Brisk-Axolotl042",
+    "BriskWombat042",
+    "SneakyAxolotl042",
+    "Axolotl042",
+    "Brisk042",
+    "BriskAxolotlBrisk042",
+    "DropTableScores042",
+    "<script>alert(1)</script>",
+    "Robert'); DROP TABLE scores;--",
+    " BriskAxolotl042",
+    "BriskAxolotl042 ",
+    "BriskAxolotl04a",
+    "BriskAxolotl-42",
+    "BriskAxolotl04\n",
+    "BriskAxolotl042\n",
+    "BriskAxolotl\n042",
+    "BriskAxolotl٠٤٢"
+  ]
+}

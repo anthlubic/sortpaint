@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/LeaderboardRowView.cs" id="1_row"]
+
+[node name="LeaderboardRow" type="HBoxContainer" node_paths=PackedStringArray("RankLabel", "HandleLabel", "MovesLabel", "TimeLabel")]
+offset_right = 260.0
+offset_bottom = 24.0
+theme_override_constants/separation = 8
+script = ExtResource("1_row")
+RankLabel = NodePath("Rank")
+HandleLabel = NodePath("Handle")
+MovesLabel = NodePath("Moves")
+TimeLabel = NodePath("Time")
+YouColor = Color(0.408, 0.286, 0.667, 1)
+
+[node name="Rank" type="Label" parent="."]
+custom_minimum_size = Vector2(26, 0)
+layout_mode = 2
+theme_type_variation = &"Muted"
+theme_override_font_sizes/font_size = 17
+text = "1"
+horizontal_alignment = 2
+
+[node name="Handle" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Muted"
+theme_override_font_sizes/font_size = 17
+text = "QuietPomelo117"
+text_overrun_behavior = 3
+
+[node name="Moves" type="Label" parent="."]
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+theme_type_variation = &"Readout"
+theme_override_font_sizes/font_size = 17
+text = "88"
+horizontal_alignment = 2
+
+[node name="Time" type="Label" parent="."]
+custom_minimum_size = Vector2(42, 0)
+layout_mode = 2
+theme_type_variation = &"Muted"
+theme_override_font_sizes/font_size = 17
+text = "2:14"
+horizontal_alignment = 2

@@ -23,6 +23,12 @@ AppBundle/
 # Python
 __pycache__/
 
+# Leaderboard worker. The lock file is tracked so CI installs what was tested against.
+node_modules/
+/worker/.wrangler/
+# Generated from levels/*.tres by scripts/seed_levels.py on every deploy.
+/worker/levels.sql
+
 # godot-mcp drops a copy of its autoload at the project root when it starts the game.
 # The one that matters is addons/godot_mcp/mcp_interaction_server.gd.
 /mcp_interaction_server.gd

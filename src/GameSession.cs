@@ -13,10 +13,17 @@ public partial class GameSession : Node
     private const string SavePath = "user://progress.json";
     private const string CompletedKey = "completed";
     private const string BestKey = "best";
+    private const string TimeKey = "time";
 
     public static GameSession Instance { get; private set; }
 
     public Progress Progress { get; } = new();
+
+    /// <summary>
+    /// Who this player is on the leaderboard. Kept here because it outlives a scene change for the
+    /// same reason the progress record does, though it is saved to a file of its own.
+    /// </summary>
+    public PlayerIdentity Player { get; private set; }
 
     /// <summary>What the Play button chose. The game falls back to its own export when this is null.</summary>
     public LevelData SelectedLevel { get; set; }
@@ -25,6 +32,8 @@ public partial class GameSession : Node
     {
         Instance = this;
         Load();
+
+        Player = PlayerIdentity.LoadOrMint();
     }
 
     public override void _ExitTree()
@@ -70,10 +79,13 @@ public partial class GameSession : Node
     public static bool IsUnlocked(LevelData level, int greenChecks) =>
         level is null || Unlock.IsOpen(greenChecks, level.RequiredChecks);
 
-    /// <summary>Banks a finish, and the round it took. Only a new best is written to disk.</summary>
-    public void MarkCompleted(LevelData level, int moves)
+    /// <summary>How long the best round on a level took, in milliseconds, or 0 when it was untimed.</summary>
+    public int BestMillis(LevelData level) => Progress.BestMillis(KeyFor(level));
+
+    /// <summary>Banks a finish, the round it took, and how long it ran. Only a new best reaches disk.</summary>
+    public void MarkCompleted(LevelData level, int moves, int millis)
     {
-        if (Progress.Record(KeyFor(level), moves)) Save();
+        if (Progress.Record(KeyFor(level), moves, millis)) Save();
     }
 
     private void Load()
@@ -104,14 +116,28 @@ public partial class GameSession : Node
         if (!saved.TryGetValue(BestKey, out Variant best)) return;
         if (best.VariantType != Variant.Type.Dictionary) return;
 
+        // Clocks came later still, and are read alongside the counts rather than after them, so a
+        // round is restored in one go. A file without them loads with every clock at zero.
+        Godot.Collections.Dictionary times = ReadTimes(saved);
+
         foreach (var (id, moves) in best.AsGodotDictionary())
-            Progress.Record(id.AsString(), (int)moves.AsInt64());
+        {
+            int millis = times.TryGetValue(id, out Variant time) ? (int)time.AsInt64() : 0;
+            Progress.Record(id.AsString(), (int)moves.AsInt64(), millis);
+        }
+    }
+
+    private static Godot.Collections.Dictionary ReadTimes(Godot.Collections.Dictionary saved)
+    {
+        if (!saved.TryGetValue(TimeKey, out Variant times)) return [];
+        return times.VariantType == Variant.Type.Dictionary ? times.AsGodotDictionary() : [];
     }
 
     private void Save()
     {
         var ids = new Godot.Collections.Array();
         var best = new Godot.Collections.Dictionary();
+        var times = new Godot.Collections.Dictionary();
 
         foreach (string id in Progress.CompletedIds())
         {
@@ -119,6 +145,9 @@ public partial class GameSession : Node
 
             int moves = Progress.BestMoves(id);
             if (moves > 0) best[id] = moves;
+
+            int millis = Progress.BestMillis(id);
+            if (millis > 0) times[id] = millis;
         }
 
         using FileAccess file = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
@@ -132,6 +161,7 @@ public partial class GameSession : Node
         {
             { CompletedKey, ids },
             { BestKey, best },
+            { TimeKey, times },
         };
 
         file.StoreString(Json.Stringify(record, "  "));

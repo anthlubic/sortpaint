@@ -145,6 +145,76 @@ public class ProgressTests
     }
 
     [Fact]
+    public void ARoundIsRememberedWithHowLongItTook()
+    {
+        var progress = new Progress();
+
+        Assert.True(progress.Record("toadstool", 74, 134_000));
+
+        Assert.Equal(74, progress.BestMoves("toadstool"));
+        Assert.Equal(134_000, progress.BestMillis("toadstool"));
+    }
+
+    [Fact]
+    public void TheQuickerOfTwoRoundsOfEqualLengthWins()
+    {
+        var progress = new Progress();
+        progress.Record("toadstool", 74, 134_000);
+
+        Assert.False(progress.Record("toadstool", 74, 200_000));
+        Assert.Equal(134_000, progress.BestMillis("toadstool"));
+
+        Assert.True(progress.Record("toadstool", 74, 96_000));
+        Assert.Equal(96_000, progress.BestMillis("toadstool"));
+    }
+
+    [Fact]
+    public void FewerMovesBeatsAQuickerClock()
+    {
+        var progress = new Progress();
+        progress.Record("toadstool", 74, 96_000);
+
+        // The shorter round takes the record even though it took longer to play.
+        Assert.True(progress.Record("toadstool", 70, 300_000));
+        Assert.Equal(70, progress.BestMoves("toadstool"));
+        Assert.Equal(300_000, progress.BestMillis("toadstool"));
+
+        // And a quicker round of the wrong length does not claw it back.
+        Assert.False(progress.Record("toadstool", 74, 1_000));
+        Assert.Equal(70, progress.BestMoves("toadstool"));
+    }
+
+    [Fact]
+    public void ARoundBankedBeforeTheClockWasKeptLosesTheTieBreak()
+    {
+        var progress = new Progress();
+
+        // A file from a build that counted moves but not time.
+        progress.Record("toadstool", 74);
+        Assert.Equal(0, progress.BestMillis("toadstool"));
+
+        // The same round played again, this time with a clock, is the better record to keep.
+        Assert.True(progress.Record("toadstool", 74, 134_000));
+        Assert.Equal(134_000, progress.BestMillis("toadstool"));
+
+        // An untimed round never displaces a timed one of the same length.
+        Assert.False(progress.Record("toadstool", 74));
+        Assert.Equal(134_000, progress.BestMillis("toadstool"));
+    }
+
+    [Fact]
+    public void AnUnfinishedLevelHasNoClock()
+    {
+        var progress = new Progress(["cactus"]);
+
+        Assert.Equal(0, progress.BestMillis("toadstool"));
+        Assert.Equal(0, progress.BestMillis(null));
+
+        // Finished, but before the clock was kept.
+        Assert.Equal(0, progress.BestMillis("cactus"));
+    }
+
+    [Fact]
     public void AnUnfinishedLevelHasNoBestRound()
     {
         var progress = new Progress(["cactus"]);

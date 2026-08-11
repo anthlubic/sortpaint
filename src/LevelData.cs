@@ -42,4 +42,12 @@ public partial class LevelData : Resource
 
     /// <summary>The move count to beat: <see cref="OptimalMoves"/> plus its allowance.</summary>
     public int Par => Core.Par.From(OptimalMoves);
+
+    /// <summary>
+    /// What this level is called on the leaderboard: the .tres file's own name, so apple.tres is
+    /// "apple". Short and readable, unlike the full resource path the save file keys on, and it is
+    /// the name the server seeds its level table with.
+    /// </summary>
+    public string Slug =>
+        string.IsNullOrEmpty(ResourcePath) ? DisplayName.ToLowerInvariant() : ResourcePath.GetFile().GetBaseName();
 }

@@ -11,12 +11,17 @@ namespace SortPaint.Core;
 /// <remarks>
 /// A level in the record has been finished. The move count alongside it is the best round so far,
 /// and zero when it is not known: rounds played before the game counted moves are still finishes,
-/// and are treated as good ones rather than punished for arriving without a number.
+/// and are treated as good ones rather than punished for arriving without a number. The clock is
+/// kept beside it as the tie-break between two rounds of equal length, and is zero on rounds banked
+/// before the clock was kept.
 /// </remarks>
 public sealed class Progress
 {
-    /// <summary>Finished levels, each with the fewest moves it has been finished in, or 0.</summary>
-    private readonly Dictionary<string, int> _best = new(StringComparer.Ordinal);
+    /// <summary>One finish: how few moves it took, and how long it took, either possibly unknown.</summary>
+    private readonly record struct Round(int Moves, int Millis);
+
+    /// <summary>Finished levels, each with the best round it has been finished in.</summary>
+    private readonly Dictionary<string, Round> _best = new(StringComparer.Ordinal);
 
     public Progress()
     {
@@ -35,29 +40,44 @@ public sealed class Progress
 
     /// <summary>The best round on a level, or 0 when it is unfinished or was finished uncounted.</summary>
     public int BestMoves(string id) =>
-        string.IsNullOrEmpty(id) ? 0 : _best.GetValueOrDefault(id);
-
-    /// <summary>Records a finish with no move count. True the first time a level is painted.</summary>
-    public bool MarkCompleted(string id) => Record(id, 0);
+        string.IsNullOrEmpty(id) ? 0 : _best.GetValueOrDefault(id).Moves;
 
     /// <summary>
-    /// Records a finish. True when it is news, which is the first finish or a shorter round than
-    /// the one on file; a longer round leaves the record alone.
+    /// How long the best round took, in milliseconds, or 0 when it is unfinished or was banked
+    /// before the clock was kept. This is the tie-break the leaderboard sorts equal rounds by.
     /// </summary>
-    public bool Record(string id, int moves)
+    public int BestMillis(string id) =>
+        string.IsNullOrEmpty(id) ? 0 : _best.GetValueOrDefault(id).Millis;
+
+    /// <summary>Records a finish with no move count. True the first time a level is painted.</summary>
+    public bool MarkCompleted(string id) => Record(id, 0, 0);
+
+    /// <summary>Records a finish whose clock was not kept.</summary>
+    public bool Record(string id, int moves) => Record(id, moves, 0);
+
+    /// <summary>
+    /// Records a finish. True when it is news, which is the first finish, a shorter round than the
+    /// one on file, or the same length done quicker; anything longer leaves the record alone.
+    /// </summary>
+    public bool Record(string id, int moves, int millis)
     {
         if (string.IsNullOrEmpty(id)) return false;
         if (moves < 0) moves = 0;
+        if (millis < 0) millis = 0;
 
-        if (!_best.TryGetValue(id, out int best))
+        if (!_best.TryGetValue(id, out Round best))
         {
-            _best[id] = moves;
+            _best[id] = new Round(moves, millis);
             return true;
         }
 
-        if (moves == 0 || (best != 0 && moves >= best)) return false;
+        // A finish that arrives without a count never displaces one that has a number on it.
+        if (moves == 0) return false;
 
-        _best[id] = moves;
+        // A round on file with no count is beaten by any counted round, however long.
+        if (best.Moves != 0 && !RoundOrder.IsBetter(moves, millis, best.Moves, best.Millis)) return false;
+
+        _best[id] = new Round(moves, millis);
         return true;
     }
 

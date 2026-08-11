@@ -35,6 +35,8 @@ public partial class GameController : Control
     [Export] public Label OverlayBody { get; set; }
     [Export] public Button OverlayButton { get; set; }
     [Export] public Button OverlayMenuButton { get; set; }
+    [Export] public LeaderboardView Leaderboard { get; set; }
+    [Export] public LeaderboardClient Scores { get; set; }
 
     [ExportGroup("Feel")]
     [Export(PropertyHint.Range, "0.05,1,0.01")] public float FlightDuration { get; set; } = 0.26f;
@@ -77,6 +79,15 @@ public partial class GameController : Control
     /// <summary>The picture is painted. Only a restart resumes.</summary>
     private bool _finished;
 
+    /// <summary>The clock as it stood when the picture was finished, in milliseconds.</summary>
+    private int _finishedMillis;
+
+    /// <summary>The board for the round just finished, once it has arrived. Null when it has not.</summary>
+    private BoardResult _board;
+
+    /// <summary>Whether a board is still on its way, which is what the overlay says while it waits.</summary>
+    private bool _boardWaiting;
+
     public override void _Ready()
     {
         if (Board is null || TrayRail is null)
@@ -97,6 +108,10 @@ public partial class GameController : Control
         if (OverlayMenuButton is not null) OverlayMenuButton.Pressed += BackToMenu;
 
         StartLevel();
+
+        // Rounds finished while the connection was down go up now, which is the next chance they
+        // get. Ordered after StartLevel so a slow server cannot hold up the board appearing.
+        Scores?.FlushPending();
     }
 
     private void BackToMenu() => GetTree().ChangeSceneToFile(MenuScene);
@@ -135,6 +150,10 @@ public partial class GameController : Control
         _moves = 0;
         _par = Level.Par;
         _finished = false;
+        _finishedMillis = 0;
+        _board = null;
+        _boardWaiting = false;
+        Leaderboard?.HideBoard();
 
         if (Overlay is not null) Overlay.Visible = false;
         if (LevelNameLabel is not null) LevelNameLabel.Text = Level.DisplayName;
@@ -362,8 +381,12 @@ public partial class GameController : Control
         _finished = true;
 
         // Banked the moment the picture is done, rather than when the overlay appears, so a win
-        // is never lost to the wait.
-        GameSession.Instance?.MarkCompleted(Level, _moves);
+        // is never lost to the wait. _finished above has already stopped the clock, so the wait
+        // for the beads to land is not counted against the round.
+        _finishedMillis = Mathf.RoundToInt(_clock * 1000f);
+        GameSession.Instance?.MarkCompleted(Level, _moves, _finishedMillis);
+
+        SendScore();
 
         float wait = FlightDuration + FlightStagger * Mathf.Max(0, beadCount - 1) + 0.2f;
         SceneTreeTimer timer = GetTree().CreateTimer(wait);
@@ -374,6 +397,29 @@ public partial class GameController : Control
         };
     }
 
+    /// <summary>
+    /// Sends the round off while the beads are still landing, so the board is usually there by the
+    /// time the overlay is. Nothing waits on it: a round that cannot be sent is kept and retried.
+    /// </summary>
+    private void SendScore()
+    {
+        if (Scores is null) return;
+
+        _boardWaiting = true;
+        int generation = _generation;
+
+        Scores.Submit(Level, _moves, _finishedMillis, result =>
+        {
+            // A restart while the request was in the air makes this answer stale.
+            if (generation != _generation) return;
+
+            _boardWaiting = false;
+            _board = result;
+
+            if (Overlay is not null && Overlay.Visible) DrawBoard();
+        });
+    }
+
     private void ShowOverlay()
     {
         if (Overlay is null) return;
@@ -382,7 +428,18 @@ public partial class GameController : Control
         if (OverlayBody is not null) OverlayBody.Text = $"{FormatClock(_clock)}\n{Verdict()}";
         if (OverlayButton is not null) OverlayButton.Text = "Play again";
 
+        DrawBoard();
+
         Overlay.Visible = true;
+    }
+
+    /// <summary>Puts the board on the card, or takes it off when there is none to show.</summary>
+    private void DrawBoard()
+    {
+        if (Leaderboard is null) return;
+
+        if (_boardWaiting) Leaderboard.ShowWaiting(Level);
+        else Leaderboard.ShowBoard(Level, _board);
     }
 
     /// <summary>The line under the clock: how the round went against par.</summary>
@@ -420,9 +477,9 @@ public partial class GameController : Control
         else MovesLabel.RemoveThemeColorOverride("font_color");
     }
 
-    private static string FormatClock(float seconds)
-    {
-        int whole = Mathf.Max(0, Mathf.CeilToInt(seconds));
-        return $"{whole / 60}:{whole % 60:00}";
-    }
+    /// <summary>
+    /// The HUD clock and the leaderboard's rows are written the same way, so a round never reads
+    /// as one length on the overlay and another on the board beneath it.
+    /// </summary>
+    private static string FormatClock(float seconds) => Clock.Format(Mathf.RoundToInt(seconds * 1000f));
 }

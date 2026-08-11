@@ -1,0 +1,39 @@
+name = "sortpaint-leaderboard"
+main = "src/index.js"
+compatibility_date = "2026-08-10"
+
+# Reachable only at sortpaint-leaderboard.<subdomain>.workers.dev.
+#
+# There is deliberately no `routes` and no `custom_domain` here, and there must not be. Those are
+# the only things that attach a Worker to a zone or write DNS records, and this account is not the
+# one hosting riftworlds.net. Adding either is how this would silently end up on somebody's domain.
+workers_dev = true
+
+# Which account this ships to comes from CLOUDFLARE_ACCOUNT_ID, which CI passes and which a local
+# deploy should export too. That matters more here than usual: this login can also see the account
+# hosting riftworlds.net, and wrangler will happily deploy to whichever account it is pointed at.
+#
+# Pinned to the account created for this game alone, not the one hosting riftworlds.net. CI passes
+# the same value; having it here as well means a local deploy cannot quietly go to the other one.
+account_id = "66eaf2a0771484239ea1379b347fc7ed"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+# `env.DB` in src/index.js. Wrangler suggests naming the binding after the database when it
+# creates one; it is called DB here instead, and the code expects that.
+binding = "DB"
+database_name = "sortpaint-leaderboard"
+database_id = "864d94e9-2e52-46d4-8d26-b80d782ee9db"
+
+# Applied to the submitting player id and again to the calling IP. Generous enough that finishing
+# levels quickly, or flushing a backlog after being offline, never trips it; tight enough that
+# nobody rewrites the whole board from a loop. `period` accepts only 10 or 60.
+[[ratelimits]]
+name = "SCORE_LIMIT"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60

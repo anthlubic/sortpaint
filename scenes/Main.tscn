@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://src/GameController.cs" id="1_game"]
 [ext_resource type="Script" path="res://src/BoardView.cs" id="2_board"]
@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://scenes/Cell.tscn" id="4_cell"]
 [ext_resource type="PackedScene" path="res://scenes/Bead.tscn" id="5_bead"]
 [ext_resource type="Resource" path="res://levels/toadstool.tres" id="6_level"]
+[ext_resource type="PackedScene" path="res://scenes/Leaderboard.tscn" id="7_leaderboard"]
+[ext_resource type="Script" path="res://src/LeaderboardClient.cs" id="8_scores"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_canvas"]
 bg_color = Color(0.855, 0.812, 0.914, 1)
@@ -19,7 +21,7 @@ corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 
-[node name="Main" type="Control" node_paths=PackedStringArray("Board", "TrayRail", "FlightLayer", "LevelNameLabel", "ClockLabel", "MovesLabel", "RestartButton", "MenuButton", "Overlay", "OverlayTitle", "OverlayBody", "OverlayButton", "OverlayMenuButton")]
+[node name="Main" type="Control" node_paths=PackedStringArray("Board", "TrayRail", "FlightLayer", "LevelNameLabel", "ClockLabel", "MovesLabel", "RestartButton", "MenuButton", "Overlay", "OverlayTitle", "OverlayBody", "OverlayButton", "OverlayMenuButton", "Leaderboard", "Scores")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -42,6 +44,8 @@ OverlayTitle = NodePath("Overlay/Center/Card/Column/Title")
 OverlayBody = NodePath("Overlay/Center/Card/Column/Body")
 OverlayButton = NodePath("Overlay/Center/Card/Column/Again")
 OverlayMenuButton = NodePath("Overlay/Center/Card/Column/Levels")
+Leaderboard = NodePath("Overlay/Center/Card/Column/Leaderboard")
+Scores = NodePath("LeaderboardClient")
 WarningFlash = Color(1, 0.62, 0.66, 1)
 
 [node name="Background" type="ColorRect" parent="."]
@@ -224,6 +228,10 @@ text = "0:00"
 horizontal_alignment = 1
 autowrap_mode = 2
 
+[node name="Leaderboard" parent="Overlay/Center/Card/Column" instance=ExtResource("7_leaderboard")]
+visible = false
+layout_mode = 2
+
 [node name="Spacer" type="Control" parent="Overlay/Center/Card/Column"]
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
@@ -239,3 +247,8 @@ text = "Play again"
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Back to levels"
+
+[node name="LeaderboardClient" type="Node" parent="."]
+script = ExtResource("8_scores")
+ApiOrigin = "https://sortpaint-leaderboard.alubic-games.workers.dev"
+TimeoutSeconds = 6
