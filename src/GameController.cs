@@ -388,11 +388,13 @@ public partial class GameController : Control
     /// <summary>The line under the clock: how the round went against par.</summary>
     private string Verdict()
     {
-        int optimal = Level?.OptimalMoves ?? 0;
-        if (optimal <= 0) return $"You solved it in {_moves} moves.";
+        // Par is the number the move counter measured against all round, and the number the
+        // verdict is decided by, so it is the one quoted here. Quoting the optimal instead read
+        // as par dropping at the last moment, since the optimal is the smaller of the two.
+        if (_par <= 0) return $"You solved it in {_moves} moves.";
 
         string ending = Par.IsMet(_moves, _par) ? "Good Job!" : "Try Again!";
-        return $"You solved it in {_moves} moves. The optimal moves is {optimal}. {ending}";
+        return $"You solved it in {_moves} moves. Par is {_par}. {ending}";
     }
 
     public override void _Process(double delta)
