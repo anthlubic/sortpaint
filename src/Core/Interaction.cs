@@ -18,6 +18,10 @@ namespace SortPaint.Core;
 /// <item>Tap the run that is already hovering (the same spheres on the board, or the tray
 /// again) to put it back down and choose something else.</item>
 /// </list>
+/// A drop that only has room for part of what is up leaves the rest hovering, so the leftovers
+/// can be sent somewhere else with one more tap. The selection only ends when the player taps it
+/// down or the last of it is placed.
+/// <para/>
 /// Taps that mean nothing leave whatever is hovering alone, so a slip of the finger never costs
 /// the player their selection.
 /// </remarks>
@@ -105,14 +109,17 @@ public sealed class Interaction
     /// <summary>Everything hovering comes down into the tray, as far as there is room for it.</summary>
     private MoveResult DropIntoTray()
     {
-        // Resolving from the cell the run was lifted at reaches the same run and trims it to the
-        // slots left, so the tray's own rules stay the one place that decides what fits.
-        TapResult pickup = Board.Resolve(_hoverCells[0]);
-        if (!pickup.IsMove) return MoveResult.Nothing(pickup.Rejection);
+        if (Board.Tray.IsFull) return MoveResult.Nothing(TapRejection.TrayFull);
 
-        Board.Apply(pickup);
-        Release();
-        return MoveResult.ToTray(pickup.Color, pickup.Cells);
+        // The spheres nearest the lift go first, so a run that does not all fit keeps its
+        // leftovers in the order they were picked up in.
+        int moved = Math.Min(_hoverCells.Count, Board.Tray.FreeSlots);
+        List<int> from = _hoverCells.GetRange(0, moved);
+        int color = HoverColor;
+
+        Board.Apply(TapResult.Pickup(color, from));
+        KeepBoardHover(_hoverCells.GetRange(moved, _hoverCells.Count - moved));
+        return MoveResult.ToTray(color, from);
     }
 
     private MoveResult DropFromTray(int index)
@@ -121,7 +128,7 @@ public sealed class Interaction
         if (!place.IsMove) return MoveResult.Nothing(place.Rejection);
 
         Board.Apply(place);
-        Release();
+        KeepTrayHover();
         return MoveResult.ToBoard(HoverSource.Tray, place.Color, [], place.Cells);
     }
 
@@ -139,8 +146,31 @@ public sealed class Interaction
         int color = HoverColor;
 
         Board.MoveOnBoard(color, from, to);
-        Release();
+        KeepBoardHover(_hoverCells.GetRange(moved, _hoverCells.Count - moved));
         return MoveResult.ToBoard(HoverSource.Board, color, from, to);
+    }
+
+    /// <summary>
+    /// What is still up after a drop took part of a run off the board: those spheres stay
+    /// hovering, so one more tap sends them wherever they are wanted next.
+    /// </summary>
+    private void KeepBoardHover(List<int> remaining)
+    {
+        if (remaining.Count == 0)
+        {
+            Release();
+            return;
+        }
+
+        _hoverCells = remaining;
+        HoverCount = remaining.Count;
+    }
+
+    /// <summary>The same, for a colour lifted out of the tray: whatever is left of it stays up.</summary>
+    private void KeepTrayHover()
+    {
+        HoverCount = Board.Tray.CountOf(HoverColor);
+        if (HoverCount == 0) Release();
     }
 
     private MoveResult Lift(HoverSource source, int color, List<int> cells, int count)

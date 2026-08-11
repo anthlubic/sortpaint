@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using SortPaint.Core;
 
@@ -113,16 +114,17 @@ public partial class BoardView : Control
 
     public void HideSphere(int index) => _cells[index]?.HideSphere();
 
-    /// <summary>Raises a bead out of its divot, to show it is picked up and waiting for a home.</summary>
-    public void SetHovered(int index, bool hovered)
-    {
-        if (_cells is not null && index >= 0 && index < _cells.Length) _cells[index]?.SetHovered(hovered);
-    }
-
-    public void ClearHover()
+    /// <summary>
+    /// Raises exactly these beads out of their divots, to show they are picked up and waiting for
+    /// a home, and puts every other one down. Beads that are already up stay up without a flicker,
+    /// which is what lets the highlight be redrawn whole after every tap.
+    /// </summary>
+    public void SetHoveredCells(IReadOnlyCollection<int> cells)
     {
         if (_cells is null) return;
-        foreach (CellView cell in _cells) cell?.SetHovered(false);
+
+        var raised = cells as HashSet<int> ?? new HashSet<int>(cells);
+        for (int i = 0; i < _cells.Length; i++) _cells[i]?.SetHovered(raised.Contains(i));
     }
 
     public Vector2 CellCenterGlobal(int index)

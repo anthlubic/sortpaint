@@ -151,7 +151,110 @@ public class InteractionTests
         // One cell was waiting, so one sphere went: the one nearest where the run was lifted.
         Assert.Equal(1, move.Count);
         Assert.Equal(new[] { ".aaaa." }, Boards.Spheres(play.Board));
+
+        // The three that had nowhere to go are still up, waiting to be sent somewhere.
+        Assert.True(play.IsHovering);
+        Assert.Equal(HoverSource.Board, play.Source);
+        Assert.Equal(3, play.HoverCount);
+        Assert.Equal(new[] { 1, 2, 3 }, play.HoverCells);
+    }
+
+    [Fact]
+    public void TheLeftoversGoWhereverIsTappedNext()
+    {
+        // The hole splits the picture's two 'a' cells, so each drop only ever takes one sphere.
+        var play = Play(
+            target: ["bba.a"],
+            spheres: ["aa..."]);
+
+        play.TapCell(0, 0);
+        play.TapCell(2, 0);
+
+        MoveResult move = play.TapCell(4, 0);
+
+        Assert.Equal(MoveKind.ToBoard, move.Kind);
+        Assert.Equal(new[] { "..a.a" }, Boards.Spheres(play.Board));
+
+        // That was the last of them, so the selection is spent.
         Assert.False(play.IsHovering);
+        Assert.Equal(0, play.HoverCount);
+    }
+
+    [Fact]
+    public void TappingTheLeftoversPutsThemBackDown()
+    {
+        var play = Play(
+            target: ["bba.a"],
+            spheres: ["aa..."]);
+
+        play.TapCell(0, 0);
+        play.TapCell(2, 0);
+
+        MoveResult move = play.TapCell(1, 0);
+
+        Assert.Equal(MoveKind.Cleared, move.Kind);
+        Assert.False(play.IsHovering);
+        Assert.Equal(new[] { ".aa.." }, Boards.Spheres(play.Board));
+    }
+
+    [Fact]
+    public void ATrayWithLittleRoomTakesWhatItCanAndKeepsTheRestUp()
+    {
+        var play = Play(["aaa"], ["bbb"], capacity: 2);
+
+        play.TapCell(0, 0);
+        MoveResult move = play.TapTray(LevelGrid.Empty);
+
+        Assert.Equal(MoveKind.ToTray, move.Kind);
+        Assert.Equal(2, move.Count);
+        Assert.Equal(new[] { 0, 1 }, move.From);
+        Assert.Equal(new[] { "..b" }, Boards.Spheres(play.Board));
+        Assert.True(play.Board.Tray.IsFull);
+
+        Assert.True(play.IsHovering);
+        Assert.Equal(HoverSource.Board, play.Source);
+        Assert.Equal(new[] { 2 }, play.HoverCells);
+    }
+
+    [Fact]
+    public void WhatIsLeftInTheTrayStaysUpAfterAPartialDrop()
+    {
+        // Cell 3 is the only one waiting for 'b', so two of the three in the tray stay put.
+        var play = Play(
+            target: ["aaab"],
+            spheres: ["bbb."]);
+
+        play.TapCell(0, 0);
+        play.TapTray(LevelGrid.Empty);
+        play.TapTray(Boards.Color('b'));
+
+        MoveResult move = play.TapCell(3, 0);
+
+        Assert.Equal(MoveKind.ToBoard, move.Kind);
+        Assert.Equal(1, move.Count);
+
+        Assert.True(play.IsHovering);
+        Assert.Equal(HoverSource.Tray, play.Source);
+        Assert.Equal(Boards.Color('b'), play.HoverColor);
+        Assert.Equal(2, play.HoverCount);
+        Assert.Empty(play.HoverCells);
+    }
+
+    [Fact]
+    public void EmptyingTheTrayOfAColourEndsTheSelection()
+    {
+        var play = Play(
+            target: ["bbaa"],
+            spheres: ["aa.."]);
+
+        play.TapCell(0, 0);
+        play.TapTray(LevelGrid.Empty);
+        play.TapTray(Boards.Color('a'));
+
+        play.TapCell(2, 0);
+
+        Assert.False(play.IsHovering);
+        Assert.Equal(LevelGrid.Empty, play.HoverColor);
     }
 
     [Fact]

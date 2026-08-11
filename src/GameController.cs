@@ -162,11 +162,11 @@ public partial class GameController : Control
         switch (move.Kind)
         {
             case MoveKind.Hovered:
-                ShowHover(move);
+                ShowHover();
                 return;
 
             case MoveKind.Cleared:
-                ClearHover();
+                ShowHover();
                 return;
 
             case MoveKind.None:
@@ -174,13 +174,16 @@ public partial class GameController : Control
                 return;
         }
 
-        ClearHover();
         _moves++;
 
         if (move.Kind == MoveKind.ToTray) AnimateToTray(move);
         else if (move.Source == HoverSource.Tray) AnimateFromTray(move);
         else AnimateAcrossBoard(move);
 
+        // A drop that only had room for part of the run leaves the rest up, so the highlight is
+        // redrawn from the model rather than simply cleared. It runs after the animation, which
+        // is what settles where the tray's beads are.
+        ShowHover();
         UpdateHud();
 
         // Only the finished picture ends a level. A board that has dead-ended is left alone: the
@@ -188,19 +191,17 @@ public partial class GameController : Control
         if (_state.IsSolved) WinWhenBeadsLand(move.Count);
     }
 
-    /// <summary>Raises the run the player just picked up, wherever it is sitting.</summary>
-    private void ShowHover(MoveResult move)
+    /// <summary>
+    /// Raises whatever is hovering, wherever it is sitting, and puts everything else down. Drawn
+    /// from the model rather than from one move, so it is equally right after a lift, after a
+    /// drop that took the lot, and after one that left some of it up.
+    /// </summary>
+    private void ShowHover()
     {
-        ClearHover();
+        bool fromTray = _play.IsHovering && _play.Source == HoverSource.Tray;
 
-        if (move.Source == HoverSource.Tray) TrayRail.SetHoveredColor(move.Color);
-        else foreach (int cell in move.From) Board.SetHovered(cell, true);
-    }
-
-    private void ClearHover()
-    {
-        Board.ClearHover();
-        TrayRail.SetHoveredColor(LevelGrid.Empty);
+        TrayRail.SetHoveredColor(fromTray ? _play.HoverColor : LevelGrid.Empty);
+        Board.SetHoveredCells(fromTray ? [] : _play.HoverCells);
     }
 
     private void AnimateToTray(MoveResult move)
