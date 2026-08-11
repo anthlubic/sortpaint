@@ -295,6 +295,9 @@ def build_parser():
                         help="seeds to try before giving up (default: %(default)s)")
     parser.add_argument("--tray", type=int, default=DEFAULT_TRAY_CAPACITY, metavar="N",
                         help="tray capacity (default: %(default)s)")
+    parser.add_argument("--required-checks", type=int, default=None, metavar="N",
+                        help="green checks needed to unlock the level. Default: keep what it has, "
+                             "or 0 for a new one")
     parser.add_argument("--no-register", action="store_true", help="do not add the level to campaign.tres")
     parser.add_argument("--godot-import", action="store_true", help="run godot --headless --import afterwards")
     parser.add_argument("--dry-run", action="store_true", help="run every check but write nothing")
@@ -377,12 +380,22 @@ def main(argv=None):
         report_fixture(name, grid, seed)
         return 0
 
+    # Re-importing keeps the lock the level already had, the way it keeps its seed.
+    required_checks = args.required_checks
+    if required_checks is None:
+        required_checks = read_level_tres(existing)["required_checks"] if existing.exists() else 0
+
     png = LEVELS / f"{name}.png"
     image.save(png)
     existing.write_text(
-        level_tres(name, display_name, seed, args.tray, args.alpha_threshold, optimal)
+        level_tres(
+            name, display_name, seed, args.tray, args.alpha_threshold, optimal, required_checks
+        )
     )
     print(f"  wrote {png.relative_to(ROOT)} and {existing.relative_to(ROOT)}")
+
+    if required_checks:
+        print(f"  locked until the player has {required_checks} green check(s)")
 
     if not args.no_register:
         updated = campaign_with(CAMPAIGN, name)

@@ -33,6 +33,13 @@ public partial class LevelData : Resource
     [Export(PropertyHint.Range, "0,999,1")]
     public int OptimalMoves { get; set; }
 
+    /// <summary>
+    /// Green checks needed before this level opens, a check being a level painted in par. Zero,
+    /// which every level of the original campaign carries, means open from the start.
+    /// </summary>
+    [Export(PropertyHint.Range, "0,200,1")]
+    public int RequiredChecks { get; set; }
+
     /// <summary>The move count to beat: <see cref="OptimalMoves"/> plus its allowance.</summary>
     public int Par => Core.Par.From(OptimalMoves);
 }

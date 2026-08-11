@@ -17,10 +17,20 @@ back to the page and `Restart` deals the same puzzle again.
 Finished levels are remembered in `user://progress.json`, keyed by each level resource's path,
 along with the fewest moves each one has been finished in.
 
+## Locked levels
+
+A level can ask for a number of green checks before it opens, which is what `RequiredChecks` on the
+`LevelData` resource holds. The first eighty five levels ask for none. After those, each chunk of
+five asks for five more than the chunk before it: five checks, then ten, and so on up to forty.
+
+A locked square shows its picture washed out under a padlock. Tapping it says what it wants, and the
+count in the header says how many checks the player has. The rule itself is `src/Core/Unlock.cs`, and
+a check is a level whose best round came in on par, counted the same way the tile badges are.
+
 ## Par
 
 Every level carries a move target, shown beside the clock as `Moves: 12/72`. Par is the shortest
-solution the search in `scripts/sortpaint/par.py` can find, plus fifteen percent. Going over it is
+solution the search in `scripts/sortpaint/par.py` can find, plus forty percent. Going over it is
 allowed and the round can still be finished; the count just turns red and the tick on the menu
 comes out grey rather than green.
 
@@ -92,6 +102,9 @@ to find its par. Only if it finishes does anything get written: the PNG, the res
 entry in `campaign.tres`. A
 picture that cannot be scrambled clean, or that dead-ends, is reported with the reason and the tree
 is left alone. The seed is searched for rather than picked, so re-running the same import is a no-op.
+
+Add `--required-checks N` to lock the level behind that many green checks; leave it off and the level
+opens from the start. Re-importing keeps whatever lock the level already had, the way it keeps its seed.
 
 By hand: draw the PNG (or add it to `scripts/make_level_sprites.py`), make the resource in the
 inspector, and add it to `campaign.tres` yourself. Then `python3 scripts/update_par.py <name>` for

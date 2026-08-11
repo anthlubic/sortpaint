@@ -15,8 +15,8 @@ namespace SortPaint.Core;
 /// </remarks>
 public static class Par
 {
-    /// <summary>Fifteen percent, rounded up, so even a short level gets at least one spare move.</summary>
-    public const double Allowance = 0.15;
+    /// <summary>Forty percent, rounded up, so even a short level gets at least one spare move.</summary>
+    public const double Allowance = 0.40;
 
     /// <summary>Par for a level, or zero when nobody has worked out how short it can be.</summary>
     public static int From(int optimalMoves) =>

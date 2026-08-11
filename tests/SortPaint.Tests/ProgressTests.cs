@@ -152,4 +152,43 @@ public class ProgressTests
         Assert.Equal(0, progress.BestMoves("toadstool"));
         Assert.Equal(0, progress.BestMoves(null));
     }
+
+    [Fact]
+    public void AGreenCheckIsAFinishInsidePar()
+    {
+        var progress = new Progress();
+        progress.Record("toadstool", 70);
+        progress.Record("cactus", 90);
+
+        Assert.True(progress.MetPar("toadstool", 71));
+        Assert.True(progress.MetPar("toadstool", 70));
+        Assert.False(progress.MetPar("cactus", 80));
+        Assert.False(progress.MetPar("rocket", 80));
+    }
+
+    [Fact]
+    public void ARoundWithNothingToMeasureItAgainstStillEarnsItsCheck()
+    {
+        var progress = new Progress();
+        progress.Record("toadstool", 300);
+        progress.MarkCompleted("cactus");
+
+        // A level with no par worked out, and a finish banked before moves were counted: both are
+        // green on the menu, so both are green to the locks.
+        Assert.True(progress.MetPar("toadstool", 0));
+        Assert.True(progress.MetPar("cactus", 40));
+    }
+
+    [Fact]
+    public void CheckCountingIsOverTheLevelsAskedAbout()
+    {
+        var progress = new Progress();
+        progress.Record("toadstool", 70);
+        progress.Record("cactus", 90);
+        progress.Record("rocket", 50);
+
+        Assert.Equal(2, progress.CountMetPar([("toadstool", 71), ("cactus", 80), ("rocket", 60)]));
+        Assert.Equal(0, progress.CountMetPar([]));
+        Assert.Throws<ArgumentNullException>(() => progress.CountMetPar(null));
+    }
 }

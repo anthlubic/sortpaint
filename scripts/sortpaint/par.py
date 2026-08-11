@@ -38,7 +38,7 @@ FROM_TRAY = "from_tray"
 ACROSS = "across"
 """A run carried straight from where it sat to where it belongs."""
 
-PAR_ALLOWANCE = 0.15
+PAR_ALLOWANCE = 0.40
 """The golf part: how much room over the best known solution a round is given."""
 
 # How many places on a run or a pocket to try tapping when only part of it moves.

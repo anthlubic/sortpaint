@@ -1,10 +1,11 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/LevelSelectView.cs" id="1_select"]
 [ext_resource type="PackedScene" path="res://scenes/LevelTile.tscn" id="2_tile"]
 [ext_resource type="Resource" path="res://levels/campaign.tres" id="3_levels"]
+[ext_resource type="Script" path="res://src/LockBadge.cs" id="4_lock"]
 
-[node name="LevelSelect" type="Control" node_paths=PackedStringArray("Grid", "GridArea", "PlayButton", "SelectionLabel", "ProgressLabel", "PrevButton", "NextButton", "PageLabel", "Pager")]
+[node name="LevelSelect" type="Control" node_paths=PackedStringArray("Grid", "GridArea", "PlayButton", "SelectionLabel", "ProgressLabel", "LockNotice", "LockNoticeTitle", "LockNoticeBody", "LockNoticeButton", "PrevButton", "NextButton", "PageLabel", "Pager")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,6 +20,10 @@ GridArea = NodePath("Layout/GridArea")
 PlayButton = NodePath("Layout/Footer/PlayButton")
 SelectionLabel = NodePath("Layout/Footer/Selection")
 ProgressLabel = NodePath("Layout/TopBar/PaintedPill/Painted")
+LockNotice = NodePath("LockNotice")
+LockNoticeTitle = NodePath("LockNotice/Center/Card/Column/Title")
+LockNoticeBody = NodePath("LockNotice/Center/Card/Column/Body")
+LockNoticeButton = NodePath("LockNotice/Center/Card/Column/Close")
 PrevButton = NodePath("Layout/Footer/Pager/Prev")
 NextButton = NodePath("Layout/Footer/Pager/Next")
 PageLabel = NodePath("Layout/Footer/Pager/Page")
@@ -70,7 +75,7 @@ theme_type_variation = &"Pill"
 [node name="Painted" type="Label" parent="Layout/TopBar/PaintedPill"]
 layout_mode = 2
 theme_type_variation = &"Muted"
-text = "0 of 0 painted"
+text = "0 of 0 painted, 0 checks"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -132,3 +137,71 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 text = "Play"
+
+[node name="LockNotice" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="LockNotice"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.322, 0.243, 0.443, 0.45)
+
+[node name="Center" type="CenterContainer" parent="LockNotice"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="LockNotice/Center"]
+layout_mode = 2
+theme_type_variation = &"Card"
+
+[node name="Column" type="VBoxContainer" parent="LockNotice/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Badge" type="Control" parent="LockNotice/Center/Card/Column"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("4_lock")
+BadgeColor = Color(0.376, 0.353, 0.42, 1)
+RimColor = Color(1, 0.996, 1, 1)
+LockColor = Color(1, 0.996, 1, 1)
+Diameter = 0.9
+ShackleThickness = 0.075
+RimThickness = 0.08
+
+[node name="Title" type="Label" parent="LockNotice/Center/Card/Column"]
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 32
+text = "Locked"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="LockNotice/Center/Card/Column"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_type_variation = &"Muted"
+theme_override_constants/line_spacing = 2
+text = "This level requires 5 par completions to unlock. Get more green checks!"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Close" type="Button" parent="LockNotice/Center/Card/Column"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "Got it"

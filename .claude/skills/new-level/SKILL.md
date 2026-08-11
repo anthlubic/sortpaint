@@ -56,7 +56,9 @@ plain background, square"`.
 python3 scripts/import_level.py /tmp/<name>.png --size 16 --colors 6
 ```
 
-`--size 16` matches every shipped level; `--colors 6` is the usual count. The script downscales,
+`--size 16` matches the first six shipped levels and `--size 24` the rest; `--colors 6` is the usual
+count. Hand-authored art from `scripts/make_level_sprites.py` is already the right size and palette,
+so import it with neither flag. The script downscales,
 quantises, then plays the level through with a stand-in player before writing anything. On
 success it writes `levels/<name>.png` and `levels/<name>.tres` and adds the level to
 `levels/campaign.tres`.
@@ -130,8 +132,14 @@ looking proves it is worth playing. A picture that reads as mush at 16x16 passes
 - Seeds are searched, not chosen. The importer starts at `20260809 + <levels so far>` and walks
   up until a seed yields a level the stand-in player finishes. Re-importing a level keeps the
   seed it already has, so a repeat run is a no-op.
-- The menu is a five by five page. Past 25 levels the extras exist but are not shown, and the
-  importer warns about it.
+- The menu is a five by five page with a pager under it, so a level lands on page
+  `index / 25` in campaign order. Nothing caps how many pages there are.
+- A level can be locked behind green checks (levels finished on par): pass
+  `--required-checks N` at import, or set `RequiredChecks` in the inspector. The shipped campaign
+  leaves the first eighty five at zero and then raises the price by five every five levels, so
+  level 86 wants five checks and level 125 wants forty. `src/Core/Unlock.cs` holds the rule and
+  `LevelSelectView` draws the padlock. A locked level is still played and tested exactly like any
+  other; the lock only decides whether the menu will open it.
 - The importer never writes until every check passes, so a refusal leaves the tree untouched.
 - Par is worked out at authoring time, never in the game: the search in `scripts/sortpaint/par.py`
   takes seconds, which a level opening cannot spend. Every plan is replayed through

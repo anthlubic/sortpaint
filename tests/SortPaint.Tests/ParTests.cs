@@ -6,10 +6,10 @@ namespace SortPaint.Tests;
 public class ParTests
 {
     [Theory]
-    [InlineData(1, 2)]      // 1.15 rounds up, so a one-move level still gives a spare
-    [InlineData(20, 23)]
-    [InlineData(62, 72)]    // toadstool
-    [InlineData(100, 115)]
+    [InlineData(1, 2)]      // 1.4 rounds up, so a one-move level still gives a spare
+    [InlineData(20, 28)]
+    [InlineData(62, 87)]    // toadstool
+    [InlineData(100, 140)]
     public void ParIsTheBestKnownSolutionPlusItsAllowance(int optimal, int expected)
     {
         Assert.Equal(expected, Par.From(optimal));
@@ -26,9 +26,9 @@ public class ParTests
     [Fact]
     public void ComingInOnParCountsAndGoingOverDoesNot()
     {
-        Assert.True(Par.IsMet(71, 72));
-        Assert.True(Par.IsMet(72, 72));
-        Assert.False(Par.IsMet(73, 72));
+        Assert.True(Par.IsMet(86, 87));
+        Assert.True(Par.IsMet(87, 87));
+        Assert.False(Par.IsMet(88, 87));
     }
 
     [Fact]

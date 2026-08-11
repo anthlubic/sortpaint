@@ -1,4 +1,5 @@
 using Godot;
+using SortPaint.Core;
 
 namespace SortPaint;
 
@@ -27,6 +28,13 @@ public partial class LevelSelectView : Control
     [Export] public Label SelectionLabel { get; set; }
     [Export] public Label ProgressLabel { get; set; }
 
+    /// <summary>The card that answers a tap on a padlocked square. Hidden until one is tapped.</summary>
+    [ExportGroup("Locks")]
+    [Export] public Control LockNotice { get; set; }
+    [Export] public Label LockNoticeTitle { get; set; }
+    [Export] public Label LockNoticeBody { get; set; }
+    [Export] public Button LockNoticeButton { get; set; }
+
     [ExportGroup("Paging")]
     [Export] public Button PrevButton { get; set; }
     [Export] public Button NextButton { get; set; }
@@ -47,6 +55,12 @@ public partial class LevelSelectView : Control
     private LevelTileView[] _tiles = [];
     private LevelTileView _selected;
     private int _page;
+
+    /// <summary>
+    /// Green checks earned across the whole campaign, which is what the locks are priced in. Read
+    /// once when the menu is built: nothing can earn a check while the menu is up.
+    /// </summary>
+    private int _checks;
 
     /// <summary>How many squares a page holds. The grid's own columns times the rows asked for.</summary>
     private int PageSize => Mathf.Max(1, Grid?.Columns ?? 1) * Mathf.Max(1, Rows);
@@ -69,6 +83,9 @@ public partial class LevelSelectView : Control
         if (NextButton is not null) NextButton.Pressed += () => TurnTo(_page + 1);
         if (GridArea is not null) GridArea.Resized += Relayout;
 
+        if (LockNotice is not null) LockNotice.Visible = false;
+        if (LockNoticeButton is not null) LockNoticeButton.Pressed += HideLockNotice;
+
         Build();
     }
 
@@ -88,6 +105,7 @@ public partial class LevelSelectView : Control
         var group = new ButtonGroup();
         _tiles = new LevelTileView[PageSize];
         _selected = null;
+        _checks = GameSession.Instance?.GreenChecks(Levels) ?? 0;
 
         for (int i = 0; i < _tiles.Length; i++)
         {
@@ -98,7 +116,7 @@ public partial class LevelSelectView : Control
 
             // Wired for every square, not just the filled ones, because a square that is blank on
             // this page may hold a level on the next. A blank square is disabled, so it stays quiet.
-            tile.Pressed += () => Select(tile);
+            tile.Pressed += () => Choose(tile);
         }
 
         Relayout();
@@ -124,7 +142,8 @@ public partial class LevelSelectView : Control
             _tiles[i].ShowLevel(
                 level,
                 GameSession.Instance?.IsCompleted(level) ?? false,
-                GameSession.Instance?.MetPar(level) ?? true);
+                GameSession.Instance?.MetPar(level) ?? true,
+                !GameSession.IsUnlocked(level, _checks));
         }
 
         UpdatePager();
@@ -148,23 +167,25 @@ public partial class LevelSelectView : Control
 
     /// <summary>
     /// The level the menu wants to open on: whatever was played last, otherwise the first one still
-    /// unpainted, so Play is always ready to press. Looks across the whole set, not just a page.
+    /// unpainted, so Play is always ready to press. Looks across the whole set, not just a page, and
+    /// never lands on a locked level, which Play could not open anyway.
     /// </summary>
     private LevelData OpeningLevel()
     {
         LevelData wanted = GameSession.Instance?.SelectedLevel;
-        if (wanted is not null && IndexOf(wanted) >= 0) return wanted;
+        if (wanted is not null && IndexOf(wanted) >= 0 && IsOpen(wanted)) return wanted;
 
         for (int i = 0; i < LevelCount; i++)
         {
             LevelData level = Levels.At(i);
-            if (level is not null && !(GameSession.Instance?.IsCompleted(level) ?? false)) return level;
+            if (level is null || !IsOpen(level)) continue;
+            if (!(GameSession.Instance?.IsCompleted(level) ?? false)) return level;
         }
 
         return Levels?.At(0);
     }
 
-    /// <summary>Which square on the current page to light: the opening choice if it is here, else the first.</summary>
+    /// <summary>Which square on the current page to light: the opening choice if it is here, else the first open one.</summary>
     private LevelTileView OpeningChoice()
     {
         LevelData wanted = OpeningLevel();
@@ -172,13 +193,15 @@ public partial class LevelSelectView : Control
 
         foreach (LevelTileView tile in _tiles)
         {
-            if (tile.Level is null) continue;
+            if (tile.Level is null || tile.Locked) continue;
             if (tile.Level == wanted) return tile;
             first ??= tile;
         }
 
         return first;
     }
+
+    private bool IsOpen(LevelData level) => GameSession.IsUnlocked(level, _checks);
 
     private int IndexOf(LevelData level)
     {
@@ -193,6 +216,39 @@ public partial class LevelSelectView : Control
     {
         int index = level is null ? -1 : IndexOf(level);
         return index < 0 ? 0 : index / PageSize;
+    }
+
+    /// <summary>
+    /// A tap on a square. A locked one says what it wants and hands the light back to whatever was
+    /// selected, so the tap reads as an answered question rather than a choice.
+    /// </summary>
+    private void Choose(LevelTileView tile)
+    {
+        if (tile is null || !tile.Locked)
+        {
+            Select(tile);
+            return;
+        }
+
+        ShowLockNotice(tile.Level);
+
+        if (_selected is not null) _selected.ButtonPressed = true;
+        else tile.ButtonPressed = false;
+    }
+
+    private void ShowLockNotice(LevelData level)
+    {
+        if (LockNotice is null || level is null) return;
+
+        if (LockNoticeTitle is not null) LockNoticeTitle.Text = level.DisplayName;
+        if (LockNoticeBody is not null) LockNoticeBody.Text = Unlock.LockedMessage(level.RequiredChecks);
+
+        LockNotice.Visible = true;
+    }
+
+    private void HideLockNotice()
+    {
+        if (LockNotice is not null) LockNotice.Visible = false;
     }
 
     private void Select(LevelTileView tile)
@@ -213,7 +269,11 @@ public partial class LevelSelectView : Control
         }
     }
 
-    /// <summary>Counts the whole campaign, not the page, so paging does not move the total.</summary>
+    /// <summary>
+    /// Counts the whole campaign, not the page, so paging does not move the total. The checks are
+    /// on the same line because they are what the padlocks are spending, so a player who has just
+    /// been told to earn more can see how many they have.
+    /// </summary>
     private void UpdateProgressLine()
     {
         if (ProgressLabel is null) return;
@@ -226,13 +286,13 @@ public partial class LevelSelectView : Control
             if (level is not null && (GameSession.Instance?.IsCompleted(level) ?? false)) painted++;
         }
 
-        ProgressLabel.Text = $"{painted} of {LevelCount} painted";
+        ProgressLabel.Text = $"{painted} of {LevelCount} painted, {_checks} checks";
     }
 
     private void Play()
     {
         LevelData level = _selected?.Level;
-        if (level is null) return;
+        if (level is null || _selected.Locked) return;
 
         if (GameSession.Instance is not null) GameSession.Instance.SelectedLevel = level;
         GetTree().ChangeSceneToFile(GameScene);

@@ -104,9 +104,21 @@ OptimalMoves = {optimal_moves}
 """
 
 
-def level_tres(name, display_name, seed, tray_capacity, alpha_threshold, optimal_moves):
-    """The LevelData resource, shaped exactly like the hand-authored ones in levels/."""
-    return LEVEL_TRES.format(
+def level_tres(
+    name,
+    display_name,
+    seed,
+    tray_capacity,
+    alpha_threshold,
+    optimal_moves,
+    required_checks=0,
+):
+    """The LevelData resource, shaped exactly like the hand-authored ones in levels/.
+
+    RequiredChecks is written only when the level asks for some, the way Godot leaves a property
+    sitting at its default out of the file. So a level open from the start reads as it always did.
+    """
+    text = LEVEL_TRES.format(
         name=name,
         display_name=display_name,
         seed=seed,
@@ -114,6 +126,11 @@ def level_tres(name, display_name, seed, tray_capacity, alpha_threshold, optimal
         alpha_threshold=_trim_float(alpha_threshold),
         optimal_moves=optimal_moves,
     )
+
+    if required_checks:
+        text += f"RequiredChecks = {required_checks}\n"
+
+    return text
 
 
 def _trim_float(value):
@@ -136,6 +153,7 @@ def read_level_tres(path):
         "tray_capacity": int(fields.get("TrayCapacity", DEFAULT_TRAY_CAPACITY)),
         "alpha_threshold": float(fields.get("AlphaThreshold", DEFAULT_ALPHA_THRESHOLD)),
         "optimal_moves": int(fields.get("OptimalMoves", 0)),
+        "required_checks": int(fields.get("RequiredChecks", 0)),
         "sprite": sprite.group(1) if sprite else None,
     }
 

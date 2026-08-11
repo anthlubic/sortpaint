@@ -51,6 +51,25 @@ public partial class GameSession : Node
     public bool MetPar(LevelData level) =>
         level is not null && IsCompleted(level) && Par.IsMet(BestMoves(level), level.Par);
 
+    /// <summary>
+    /// How many of a set's levels are painted in par: the green checks the locks are priced in.
+    /// Counted over the whole set rather than a page, so paging never moves the number.
+    /// </summary>
+    public int GreenChecks(LevelSet levels)
+    {
+        if (levels is null) return 0;
+
+        int checks = 0;
+        for (int i = 0; i < levels.Count; i++)
+            if (MetPar(levels.At(i))) checks++;
+
+        return checks;
+    }
+
+    /// <summary>Whether a level is open to play, given the checks earned so far.</summary>
+    public static bool IsUnlocked(LevelData level, int greenChecks) =>
+        level is null || Unlock.IsOpen(greenChecks, level.RequiredChecks);
+
     /// <summary>Banks a finish, and the round it took. Only a new best is written to disk.</summary>
     public void MarkCompleted(LevelData level, int moves)
     {

@@ -61,6 +61,26 @@ public sealed class Progress
         return true;
     }
 
+    /// <summary>
+    /// Whether a level's best round came in on par, which is what a green check marks. A level
+    /// with no par worked out, and a finish banked before the game counted moves, both count: see
+    /// <see cref="Par.IsMet"/>. The tile badge is decided the same way, so the ticks on the menu
+    /// and the number the locks count never disagree.
+    /// </summary>
+    public bool MetPar(string id, int par) => IsCompleted(id) && Par.IsMet(BestMoves(id), par);
+
+    /// <summary>How many of these levels are painted in par. The currency the locks are priced in.</summary>
+    public int CountMetPar(IEnumerable<(string Id, int Par)> levels)
+    {
+        ArgumentNullException.ThrowIfNull(levels);
+
+        int checks = 0;
+        foreach ((string id, int par) in levels)
+            if (MetPar(id, par)) checks++;
+
+        return checks;
+    }
+
     public bool Forget(string id) => !string.IsNullOrEmpty(id) && _best.Remove(id);
 
     public void ForgetAll() => _best.Clear();

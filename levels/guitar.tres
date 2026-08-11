@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/LevelData.cs" id="1_script"]
+[ext_resource type="Texture2D" path="res://levels/guitar.png" id="2_sprite"]
+
+[resource]
+script = ExtResource("1_script")
+DisplayName = "Guitar"
+Sprite = ExtResource("2_sprite")
+TrayCapacity = 24
+ShuffleSeed = 20260919
+AlphaThreshold = 0.5
+OptimalMoves = 76
+RequiredChecks = 30

@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://src/LevelTileView.cs" id="1_tile"]
 [ext_resource type="Script" path="res://src/CheckBadge.cs" id="2_check"]
+[ext_resource type="Script" path="res://src/LockBadge.cs" id="3_lock"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
 bg_color = Color(0.953, 0.925, 0.98, 1)
@@ -53,7 +54,7 @@ corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
 
-[node name="LevelTile" type="Button" node_paths=PackedStringArray("Preview", "Check")]
+[node name="LevelTile" type="Button" node_paths=PackedStringArray("Preview", "Check", "Lock")]
 custom_minimum_size = Vector2(96, 96)
 offset_right = 96.0
 offset_bottom = 96.0
@@ -67,6 +68,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_selected")
 script = ExtResource("1_tile")
 Preview = NodePath("Preview")
 Check = NodePath("Check")
+Lock = NodePath("Lock")
 
 [node name="Preview" type="TextureRect" parent="."]
 texture_filter = 1
@@ -83,6 +85,23 @@ grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
+
+[node name="Lock" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_lock")
+BadgeColor = Color(0.376, 0.353, 0.42, 1)
+RimColor = Color(1, 0.996, 1, 1)
+LockColor = Color(1, 0.996, 1, 1)
+Diameter = 0.6
+ShackleThickness = 0.075
+RimThickness = 0.08
 
 [node name="Check" type="Control" parent="."]
 visible = false
