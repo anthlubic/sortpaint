@@ -36,3 +36,5 @@ node_modules/
 
 # Claude Code (personal overrides only; .claude/ itself is checked in)
 .claude/settings.local.json
+
+.serena/
